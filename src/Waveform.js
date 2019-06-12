@@ -1,9 +1,9 @@
 import React from 'react'
+import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
-var videoshow = require('videoshow')
 var html2canvas = require('html2canvas')
 
-var FPS = 25
+var FPS = 1
 
 const waveStyle = {
   barWidth: 5,
@@ -20,6 +20,7 @@ class Waveform extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      selectedFile: null,
       ready: null,
       duration: null,
       currentTime: null,
@@ -34,7 +35,6 @@ class Waveform extends React.Component {
       ...waveStyle
     })
     this.wavesurfer.load(this.props.src)
-    // this.wavesurfer.setWidth('1920')
     this.wavesurfer.on('ready', () => {
       this.setState({
         duration: this.wavesurfer.getDuration() * FPS,
@@ -47,6 +47,19 @@ class Waveform extends React.Component {
     // .loadBlob(url) – Loads audio from a Blob or File object.
   }
 
+  dataURLtoFile (dataurl, filename) {
+    const arr = dataurl.split(',')
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+    while (n) {
+      u8arr[n-1] = bstr.charCodeAt(n-1)
+      n -= 1 // to make eslint happy
+    }
+    return new File([u8arr], filename, { type: mime })
+  }
+
   exportFrames(duration) {
     this.frame = 0
     this.exportTimer = setInterval(() => {
@@ -56,11 +69,18 @@ class Waveform extends React.Component {
         // this.exportedImages.push(this.wavesurfer.exportImage());
 
         html2canvas(document.querySelector(".waveform")).then((canvas) => {
-          this.exportedImages.push(canvas)
+          // this.exportedImages.push(canvas)
           // var a = document.createElement('a');
           // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
           // a.download = `frame-${this.frame}.jpg`
           // a.click();
+          const file = this.dataURLtoFile(canvas.toDataURL("image/jpeg"))
+          const data = new FormData()
+          data.append('file', file, 'frame-' + this.frame + '.jpg')
+          axios.post("http://localhost:8000/upload", data)
+          .then(res => {
+            console.log(res.statusText)
+          })
         })
 
         this.setState({
@@ -70,38 +90,25 @@ class Waveform extends React.Component {
       } else {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
-        this.compressToVideo()
       }  
-    }, 1)
+    }, 10)
   }
 
-  compressToVideo() {
-    const videoOptions = {
-      fps: FPS,
-      // loop: 5, // seconds
-      transition: false,
-      transitionDuration: 1, // seconds
-      videoBitrate: 1024,
-      videoCodec: 'libx264',
-      size: '1920x?',
-      audioBitrate: '128k',
-      audioChannels: 2,
-      format: 'mp4',
-      pixelFormat: 'yuv420p'
-    }
+  onChangeHandler (event) {
+    this.setState({
+      selectedFile: event.target.files[0],
+      loaded: 0,
+    })
+  }
 
-    videoshow(this.exportedImages, videoOptions)
-    .audio(this.props.src)
-    .save('video.mp4')
-    .on('start', function (command) {
-      console.log('ffmpeg process started:', command)
+  onClickHandler () {
+    const data = new FormData() 
+    data.append('file', this.state.selectedFile)
+    axios.post("http://localhost:8000/upload", data, { 
+      // receive two    parameter endpoint url ,form data
     })
-    .on('error', function (err, stdout, stderr) {
-      console.error('Error:', err)
-      console.error('ffmpeg stderr:', stderr)
-    })
-    .on('end', function (output) {
-      console.error('Video created in:', output)
+    .then(res => { // then print response status
+      console.log(res.statusText)
     })
   }
   
@@ -113,6 +120,8 @@ class Waveform extends React.Component {
             this.exportFrames(this.state.duration)
           }}>Generate</button>
         }
+        <input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
+        <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> 
         <div className='waveform'>
           <div className='wave'></div>
         </div>
