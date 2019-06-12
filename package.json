@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "fluent-ffmpeg": "^2.1.2",
+    "html2canvas": "^1.0.0-rc.3",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1",
+    "videoshow": "^0.1.11",
     "wavesurfer.js": "^2.2.1"
   },
   "scripts": {

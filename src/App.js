@@ -7,6 +7,7 @@ function App() {
       <Waveform
         src={'lifeline.mp3'}
       />
+      <div id="images"></div>
     </div>
   )
 }
