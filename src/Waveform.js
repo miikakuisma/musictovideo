@@ -6,7 +6,7 @@ var html2canvas = require('html2canvas')
 var FPS = 1
 
 const waveStyle = {
-  barWidth: 5,
+  barWidth: 3,
   cursorWidth: 2,
   backend: 'MediaElement',
   height: 80,
@@ -66,32 +66,36 @@ class Waveform extends React.Component {
       if (this.frame < duration) {
         const nextFrame = 1/duration * this.frame
         this.wavesurfer.seekTo(nextFrame)
-        // this.exportedImages.push(this.wavesurfer.exportImage());
-
         html2canvas(document.querySelector(".waveform")).then((canvas) => {
-          // this.exportedImages.push(canvas)
-          // var a = document.createElement('a');
-          // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
-          // a.download = `frame-${this.frame}.jpg`
-          // a.click();
-          const file = this.dataURLtoFile(canvas.toDataURL("image/jpeg"))
-          const data = new FormData()
-          data.append('file', file, 'frame-' + this.frame + '.jpg')
-          axios.post("http://localhost:8000/upload", data)
-          .then(res => {
-            console.log(res.statusText)
+          this.exportedImages.push(canvas.toDataURL("image/jpeg"))
+        // var a = document.createElement('a');
+        // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+        // a.download = `frame-${this.frame}.jpg`
+        // a.click();
+          this.setState({
+            currentFrame: this.frame + 1,
           })
+          this.frame++
         })
-
-        this.setState({
-          currentFrame: this.frame + 1,
-        })
-        this.frame++
       } else {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
+        this.uploadFrames()
       }  
     }, 10)
+  }
+
+  uploadFrames() {
+    this.exportedImages.forEach((image, index) => {
+      const file = this.dataURLtoFile(image)
+      const data = new FormData()
+      data.append('file', file, `frame-${index}.jpg`)
+      axios.post("http://localhost:8000/upload", data)
+      .then(res => {
+        console.log('Upload', res.statusText)
+      })
+    })
+    console.log('now would be time to compress')
   }
 
   onChangeHandler (event) {
