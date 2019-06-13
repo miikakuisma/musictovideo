@@ -4,7 +4,7 @@ import WaveSurfer from 'wavesurfer.js'
 import './waveform.css'
 var html2canvas = require('html2canvas')
 
-let FPS = 10
+let FPS = 15
 
 const waveStyle = {
   barWidth: 3,
@@ -70,7 +70,7 @@ class Waveform extends React.Component {
         const nextFrame = 1/waveformWidth * this.frame
         this.wavesurfer.seekTo(nextFrame)
         html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
-          this.exportedImages.push(canvas.toDataURL("image/jpeg"))
+          this.exportedImages.push(canvas.toDataURL("image/webp"))
           // var a = document.createElement('a');
           // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
           // a.download = `frame-${this.frame}.jpg`
@@ -83,9 +83,12 @@ class Waveform extends React.Component {
       } else {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
-        FPS = waveformWidth / this.state.duration // Set video FPS from width of waveform and music duration
-        console.log('FPS', FPS)
-        this.uploadFrames()
+        const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
+        var a = document.createElement('a');
+        a.href = window.URL.createObjectURL(blob);
+        a.download = `frame-${this.frame}.jpg`
+        a.click();
+        // this.uploadFrames()
       }  
     }, 10)
   }
