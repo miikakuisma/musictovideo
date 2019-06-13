@@ -1,0 +1,11 @@
+.waveformContainer {
+	width: 500px;
+	height: 260px;
+	margin: 50px auto;
+	background: #efefef;
+	overflow: hidden;
+}
+
+.waveform {
+	margin-top: 182px;
+}

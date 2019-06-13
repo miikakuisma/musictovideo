@@ -1,15 +1,17 @@
 import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
+import './waveform.css'
 var html2canvas = require('html2canvas')
 
-var FPS = 1
+let FPS = 10
 
 const waveStyle = {
   barWidth: 3,
   cursorWidth: 2,
   backend: 'MediaElement',
-  height: 80,
+  width: 500,
+  height: 160,
   progressColor: '#4a74a5',
   responsive: true,
   waveColor: '#ccc',
@@ -29,7 +31,6 @@ class Waveform extends React.Component {
   }
 
   componentDidMount() {
-    this.exportedImages = []
     this.wavesurfer = WaveSurfer.create({
       container: document.querySelector('.waveform'),
       ...waveStyle
@@ -60,18 +61,20 @@ class Waveform extends React.Component {
     return new File([u8arr], filename, { type: mime })
   }
 
-  exportFrames(duration) {
+  exportFrames() {
+    const waveformWidth = 500; // px width, size of video
     this.frame = 0
+    this.exportedImages = []
     this.exportTimer = setInterval(() => {
-      if (this.frame < duration) {
-        const nextFrame = 1/duration * this.frame
+      if (this.frame < waveformWidth) {
+        const nextFrame = 1/waveformWidth * this.frame
         this.wavesurfer.seekTo(nextFrame)
-        html2canvas(document.querySelector(".waveform")).then((canvas) => {
+        html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
           this.exportedImages.push(canvas.toDataURL("image/jpeg"))
-        // var a = document.createElement('a');
-        // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
-        // a.download = `frame-${this.frame}.jpg`
-        // a.click();
+          // var a = document.createElement('a');
+          // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+          // a.download = `frame-${this.frame}.jpg`
+          // a.click();
           this.setState({
             currentFrame: this.frame + 1,
           })
@@ -80,6 +83,8 @@ class Waveform extends React.Component {
       } else {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
+        FPS = waveformWidth / this.state.duration // Set video FPS from width of waveform and music duration
+        console.log('FPS', FPS)
         this.uploadFrames()
       }  
     }, 10)
@@ -89,7 +94,7 @@ class Waveform extends React.Component {
     this.exportedImages.forEach((image, index) => {
       const file = this.dataURLtoFile(image)
       const data = new FormData()
-      data.append('file', file, `frame-${index}.jpg`)
+      data.append('file', file, `frame-${100+index}.jpg`)
       axios.post("http://localhost:8000/upload", data)
       .then(res => {
         console.log('Upload', res.statusText)
@@ -119,16 +124,18 @@ class Waveform extends React.Component {
   render() {
     return (
       <div>
+        <div className='waveformContainer'>
+          <div className='waveform'>
+            <div className='wave'></div>
+          </div>
+        </div>
         { this.state.duration &&
           <button onClick={() => {
-            this.exportFrames(this.state.duration)
+            this.exportFrames()
           }}>Generate</button>
         }
         <input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
         <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> 
-        <div className='waveform'>
-          <div className='wave'></div>
-        </div>
       </div>
     )
   }
