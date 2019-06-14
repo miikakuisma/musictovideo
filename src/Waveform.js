@@ -4,18 +4,18 @@ import WaveSurfer from 'wavesurfer.js'
 import './waveform.css'
 var html2canvas = require('html2canvas')
 
-let FPS = 15
+let FPS = 1
 
 const waveStyle = {
-  barWidth: 3,
+  barWidth: 2,
   cursorWidth: 2,
   backend: 'MediaElement',
   width: 500,
-  height: 160,
-  progressColor: '#4a74a5',
+  height: 200,
+  progressColor: '#ffc107',
   responsive: true,
-  waveColor: '#ccc',
-  cursorColor: '#4a74a5',
+  waveColor: '#fff',
+  cursorColor: 'transparent',
 }
 
 class Waveform extends React.Component {
@@ -38,14 +38,46 @@ class Waveform extends React.Component {
     this.wavesurfer.load(this.props.src)
     this.wavesurfer.on('ready', () => {
       this.setState({
-        duration: this.wavesurfer.getDuration() * FPS,
+        duration: this.wavesurfer.getDuration(),
         currentFrame: 0,
       })
+    })
+    this.wavesurfer.on('play', () => {
+      console.log('playback started')
+    })
+    this.wavesurfer.on('audioprocess', (e) => {
+      console.log('on audioprocess', e)
+    })
+    this.wavesurfer.on('finish', () => {
+      console.log('playback finished')
     })
     // this.wavesurfer.playPause()
     // .exportImage(format, quality)
     // .seekTo(progress) – Seeks to a progress [0..1] (0 = beginning, 1 = end).
     // .loadBlob(url) – Loads audio from a Blob or File object.
+  }
+
+  saveFrame() {
+    const _this = this
+    return (
+      new Promise(function(resolve, reject) {
+        html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
+          _this.exportedImages.push(canvas.toDataURL("image/webp"))
+          resolve({
+            canvas,
+            frame: _this.exportedImages.length
+          });
+        })
+      })
+    )
+  }
+
+  compressAndDownload() {
+    const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
+    var a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = `frame-${this.frame}.jpg`
+    a.click();
   }
 
   dataURLtoFile (dataurl, filename) {
@@ -62,19 +94,14 @@ class Waveform extends React.Component {
   }
 
   exportFrames() {
-    const waveformWidth = 500; // px width, size of video
     this.frame = 0
     this.exportedImages = []
     this.exportTimer = setInterval(() => {
-      if (this.frame < waveformWidth) {
-        const nextFrame = 1/waveformWidth * this.frame
+      if (this.frame < this.state.duration) {
+        const nextFrame = 1/this.state.duration * this.frame
         this.wavesurfer.seekTo(nextFrame)
         html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
           this.exportedImages.push(canvas.toDataURL("image/webp"))
-          // var a = document.createElement('a');
-          // a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
-          // a.download = `frame-${this.frame}.jpg`
-          // a.click();
           this.setState({
             currentFrame: this.frame + 1,
           })
@@ -83,11 +110,7 @@ class Waveform extends React.Component {
       } else {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
-        const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-        var a = document.createElement('a');
-        a.href = window.URL.createObjectURL(blob);
-        a.download = `frame-${this.frame}.jpg`
-        a.click();
+        this.compressAndDownload()
         // this.uploadFrames()
       }  
     }, 10)
@@ -125,9 +148,14 @@ class Waveform extends React.Component {
   }
   
   render() {
+    const length = (this.state.duration / 60).toFixed(1)
     return (
       <div>
         <div className='waveformContainer'>
+          <div className="info">
+            <h1>Miika Kuisma - Lifeline</h1>
+            <p>Duration: {length} min</p>
+          </div>
           <div className='waveform'>
             <div className='wave'></div>
           </div>
@@ -137,6 +165,7 @@ class Waveform extends React.Component {
             this.exportFrames()
           }}>Generate</button>
         }
+        <button onClick={() => { this.wavesurfer.playPause() }}>Play</button>
         <input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
         <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> 
       </div>
