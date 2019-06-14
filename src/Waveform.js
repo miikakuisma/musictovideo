@@ -76,47 +76,11 @@ class Waveform extends React.Component {
     // .loadBlob(url) – Loads audio from a Blob or File object.
   }
 
-  saveFrame() {
-    const _this = this
-    return (
-      new Promise(function(resolve, reject) {
-        html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
-          _this.exportedImages.push(canvas.toDataURL("image/webp"))
-          resolve({
-            canvas,
-            frame: _this.exportedImages.length
-          });
-        })
-      })
-    )
-  }
-
-  compressAndDownload() {
-    const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-    var a = document.createElement('a');
-    a.href = window.URL.createObjectURL(blob);
-    a.download = `frame-${this.frame}.jpg`
-    a.click();
-  }
-
-  dataURLtoFile (dataurl, filename) {
-    const arr = dataurl.split(',')
-    const mime = arr[0].match(/:(.*?);/)[1]
-    const bstr = atob(arr[1])
-    let n = bstr.length
-    const u8arr = new Uint8Array(n)
-    while (n) {
-      u8arr[n-1] = bstr.charCodeAt(n-1)
-      n -= 1 // to make eslint happy
-    }
-    return new File([u8arr], filename, { type: mime })
-  }
-
   exportFrames() {
-    this.frame = 0
+    this.frame = 1
     this.exportedImages = []
     this.exportTimer = setInterval(() => {
-      if (this.frame < this.state.duration) {
+      if (this.frame <= this.state.duration) {
         const nextFrame = 1/this.state.duration * this.frame
         this.wavesurfer.seekTo(nextFrame)
         html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
@@ -133,6 +97,28 @@ class Waveform extends React.Component {
         // this.uploadFrames()
       }  
     }, 10)
+  }
+
+  compressAndDownload() {
+    const { artist, title } = this.state.tags
+    const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
+    var a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = `${artist}-${title}.webm`
+    a.click();
+  }
+
+  dataURLtoFile (dataurl, filename) {
+    const arr = dataurl.split(',')
+    const mime = arr[0].match(/:(.*?);/)[1]
+    const bstr = atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n)
+    while (n) {
+      u8arr[n-1] = bstr.charCodeAt(n-1)
+      n -= 1 // to make eslint happy
+    }
+    return new File([u8arr], filename, { type: mime })
   }
 
   uploadFrames() {
