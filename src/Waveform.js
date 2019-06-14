@@ -27,10 +27,29 @@ class Waveform extends React.Component {
       duration: null,
       currentTime: null,
       currentFrame: null,
+      tags: {}
     }
   }
 
   componentDidMount() {
+    // Read MP3 ID3 tags and set them to state
+    var jsmediatags = require("jsmediatags");
+    jsmediatags.read("http://localhost:3000/lifeline.mp3", {
+      onSuccess: (tag) => {
+        this.setState({ tags: tag.tags })
+      },
+      onError: (error) => {
+        this.setState({ tags: 
+          {
+            artist: 'Unknown',
+            title: 'Unknown',
+            genre: 'Unknown',
+            year: 'Unknown',
+          }
+        })
+        console.log(error);
+      }
+    });
     this.wavesurfer = WaveSurfer.create({
       container: document.querySelector('.waveform'),
       ...waveStyle
@@ -149,13 +168,14 @@ class Waveform extends React.Component {
   
   render() {
     const length = (this.state.duration / 60).toFixed(1)
+    const { artist, title, genre, year } = this.state.tags
     return (
       <div>
         <div className='waveformContainer'>
           <div className="info">
-            <h2>Miika Kuisma</h2>
-            <h1>"Lifeline"</h1>
-            <p>Duration: {length} min</p>
+            <h2>{artist}</h2>
+            <h1>"{title}"</h1>
+            <p>{length} min | {genre} | {year}</p>
           </div>
           <div className='waveform'>
             <div className='wave'></div>
