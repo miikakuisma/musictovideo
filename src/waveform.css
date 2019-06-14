@@ -1,14 +1,17 @@
 .waveformContainer {
 	position: relative;
-	width: 500px;
-	height: 260px;
+	width: 640px;
+	height: 360px;
 	margin: 50px auto;
 	background: #333;
+	background: linear-gradient(to bottom, #000333 0%,#3f4c6b 100%);
 	overflow: hidden;
 }
 
 .waveform {
-	margin-top: 160px;
+	margin-top: 220px;
+  height: 140px;
+  overflow: hidden;
 }
 
 .info {
@@ -22,10 +25,18 @@
 .info h1 {
 	color: white;
   font-size: 1.8em;
+  padding: 0;
+  margin: 0;
+}
+
+.info h2 {
+	color: #e7e9ed;
+  font-size: 1.3em;
+  font-weight: normal;
   margin-top: 40px;
   margin-bottom: 0;
 }
 
 .info p {
-	color: white;
+	color: #e7e8ec;
 }

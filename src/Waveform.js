@@ -10,8 +10,8 @@ const waveStyle = {
   barWidth: 2,
   cursorWidth: 2,
   backend: 'MediaElement',
-  width: 500,
-  height: 200,
+  width: 640,
+  height: 280,
   progressColor: '#ffc107',
   responsive: true,
   waveColor: '#fff',
@@ -153,7 +153,8 @@ class Waveform extends React.Component {
       <div>
         <div className='waveformContainer'>
           <div className="info">
-            <h1>Miika Kuisma - Lifeline</h1>
+            <h2>Miika Kuisma</h2>
+            <h1>"Lifeline"</h1>
             <p>Duration: {length} min</p>
           </div>
           <div className='waveform'>
