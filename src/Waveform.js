@@ -188,7 +188,7 @@ class Waveform extends React.Component {
         }}
       >
         {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
-          <section>
+          <div>
             <div className='waveformContainer' {...getRootProps()}>
               <div className="info">
                 { artist && <h2>{artist}</h2> }
@@ -202,12 +202,12 @@ class Waveform extends React.Component {
               { showHelp && !isDragActive && <div className="dropzoneInfo">
                 <input {...getInputProps()} />
                 <div className="icon add" />
-                <p>Drag 'n' drop MP3 file here,<br />
+                <p>Drop music file here,<br />
                 or click to browse files</p>
               </div> }
               { isDragActive && !isDragReject && <div className="dropzoneInfo withoverlay">
                 <div className="icon check" />
-                <p>Now drop it</p>
+                <p>Looking good!</p>
               </div> }
               { isDragReject && <div className="dropzoneInfo withoverlay">
                 <div className="icon reject" />
@@ -218,10 +218,10 @@ class Waveform extends React.Component {
               { length > 1 &&
                 <button className="generate" onClick={() => {
                   this.exportFrames()
-                }}>{!working ? 'Download as Video' : 'Creating Your Video...'}</button>
+                }}>{!working ? 'Download' : 'Working..'}</button>
               }
             </div>
-          </section>
+          </div>
         )}
       </Dropzone>
     )

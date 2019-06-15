@@ -1,11 +1,10 @@
 import React from 'react'
 import Waveform from './Waveform'
+import './App.css'
 
 function App() {
   return (
-    <div>
-      <Waveform />
-    </div>
+    <Waveform />
   )
 }
 
