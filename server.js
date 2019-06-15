@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var multer = require('multer')
 var cors = require('cors');
+var exec = require('exec');
 
 app.use(cors())
 
@@ -23,6 +24,12 @@ app.post('/upload',function(req, res) {
     } else if (err) {
       return res.status(500).json(err)
     }
+    console.log(req.file)
+    exec('ffmpeg -i "'+req.file+'" -qscale 0 "filename.mp4"; ffmpeg -i Lifeline.mp4 -i public/lifeline.mp3 '+req.file+'.mp4; done',
+      function (error, stdout, stderr) {   
+        console.log('stdout: ' + stdout);
+        console.log('stderr: ' + stderr);
+    });
     return res.status(200).send(req.file)
   })
 });

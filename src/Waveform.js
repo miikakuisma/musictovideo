@@ -100,6 +100,10 @@ class Waveform extends React.Component {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
         this.setState({ working: false })
+
+        // ffmpeg -i "filename.webm" -qscale 0 "filename.mp4"
+        // ffmpeg -i Lifeline.mp4 -i public/lifeline.mp3 Output.mp4
+
         this.compressAndDownload()
         // this.uploadFrames()
       }  
@@ -111,6 +115,9 @@ class Waveform extends React.Component {
     // Converts images from exportedImages into webm video
     const { artist, title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
+
+    // this.uploadVideo(blob)
+    
     var a = document.createElement('a');
     // Create download link
     a.href = window.URL.createObjectURL(blob);
@@ -132,6 +139,15 @@ class Waveform extends React.Component {
       n -= 1 // to make eslint happy
     }
     return new File([u8arr], filename, { type: mime })
+  }
+
+  uploadVideo(blob) {
+    const data = new FormData()
+    data.append('file', blob, `${blob.name}.webm`)
+    axios.post("http://localhost:8000/upload", blob)
+    .then(res => {
+      console.log('Upload', res.statusText)
+    })
   }
 
   uploadFrames() {

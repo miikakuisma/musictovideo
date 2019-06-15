@@ -5,7 +5,6 @@ function App() {
   return (
     <div>
       <Waveform />
-      <div id="images"></div>
     </div>
   )
 }
