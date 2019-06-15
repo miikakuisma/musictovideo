@@ -4,9 +4,7 @@ import Waveform from './Waveform'
 function App() {
   return (
     <div>
-      <Waveform
-        src={'lifeline.mp3'}
-      />
+      <Waveform />
       <div id="images"></div>
     </div>
   )

@@ -1,6 +1,7 @@
 import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
+import Dropzone from 'react-dropzone'
 import './waveform.css'
 var html2canvas = require('html2canvas')
 
@@ -9,7 +10,7 @@ let FPS = 1
 const waveStyle = {
   barWidth: 2,
   cursorWidth: 2,
-  backend: 'MediaElement',
+  backend: 'WebAudio',
   width: 640,
   height: 280,
   progressColor: '#ffc107',
@@ -22,7 +23,7 @@ class Waveform extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      selectedFile: null,
+      showHelp: true,
       ready: null,
       duration: null,
       currentTime: null,
@@ -31,16 +32,17 @@ class Waveform extends React.Component {
     }
   }
 
-  componentDidMount() {
+  readTags(file) {
     // Read MP3 ID3 tags and set them to state
     var jsmediatags = require("jsmediatags");
-    jsmediatags.read("http://localhost:3000/lifeline.mp3", {
+    jsmediatags.read(file, {
       onSuccess: (tag) => {
         this.setState({ tags: tag.tags })
       },
       onError: (error) => {
         this.setState({ tags: 
           {
+            album: 'Unknown',
             artist: 'Unknown',
             title: 'Unknown',
             genre: 'Unknown',
@@ -50,11 +52,13 @@ class Waveform extends React.Component {
         console.log(error);
       }
     });
+  }
+
+  componentDidMount() {
     this.wavesurfer = WaveSurfer.create({
       container: document.querySelector('.waveform'),
       ...waveStyle
     })
-    this.wavesurfer.load(this.props.src)
     this.wavesurfer.on('ready', () => {
       this.setState({
         duration: this.wavesurfer.getDuration(),
@@ -100,15 +104,19 @@ class Waveform extends React.Component {
   }
 
   compressAndDownload() {
+    // Converts images from exportedImages into webm video
     const { artist, title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
     var a = document.createElement('a');
+    // Create download link
     a.href = window.URL.createObjectURL(blob);
     a.download = `${artist}-${title}.webm`
+    // Trigger download
     a.click();
   }
 
   dataURLtoFile (dataurl, filename) {
+    // Converts base64 image data into an image file that can be uploaded
     const arr = dataurl.split(',')
     const mime = arr[0].match(/:(.*?);/)[1]
     const bstr = atob(arr[1])
@@ -122,60 +130,68 @@ class Waveform extends React.Component {
   }
 
   uploadFrames() {
+    // Process exported base64 images into image files and
+    // send them to server for processing
     this.exportedImages.forEach((image, index) => {
       const file = this.dataURLtoFile(image)
       const data = new FormData()
-      data.append('file', file, `frame-${100+index}.jpg`)
+      data.append('file', file, `frame-${1000+index}.jpg`)
       axios.post("http://localhost:8000/upload", data)
       .then(res => {
         console.log('Upload', res.statusText)
       })
     })
-    console.log('now would be time to compress')
   }
 
-  onChangeHandler (event) {
-    this.setState({
-      selectedFile: event.target.files[0],
-      loaded: 0,
-    })
-  }
-
-  onClickHandler () {
-    const data = new FormData() 
-    data.append('file', this.state.selectedFile)
-    axios.post("http://localhost:8000/upload", data, { 
-      // receive two    parameter endpoint url ,form data
-    })
-    .then(res => { // then print response status
-      console.log(res.statusText)
-    })
+  loadSound(file) {
+    // This will load new music file and prepares it for conversion
+    // Analyse waveform
+    this.wavesurfer.loadBlob(file)
+    // Read tags
+    this.readTags(file)
   }
   
   render() {
-    const length = (this.state.duration / 60).toFixed(1)
-    const { artist, title, genre, year } = this.state.tags
+    const { showHelp, duration } = this.state
+    const length = (duration / 60).toFixed(1)
+    const { album, artist, title, genre, year } = this.state.tags
+
     return (
-      <div>
-        <div className='waveformContainer'>
-          <div className="info">
-            <h2>{artist}</h2>
-            <h1>"{title}"</h1>
-            <p>{length} min | {genre} | {year}</p>
-          </div>
-          <div className='waveform'>
-            <div className='wave'></div>
-          </div>
-        </div>
-        { this.state.duration &&
-          <button onClick={() => {
-            this.exportFrames()
-          }}>Generate</button>
-        }
-        <button onClick={() => { this.wavesurfer.playPause() }}>Play</button>
-        <input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
-        <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> 
-      </div>
+      <Dropzone
+        accept='.mp3, .wav'
+        onDrop={acceptedFiles => {
+          this.setState({ showHelp: false })
+          this.loadSound(acceptedFiles[0])
+        }}
+      >
+        {({getRootProps, getInputProps}) => (
+          <section>
+            <div className='waveformContainer' {...getRootProps()}>
+              <div className="info">
+                { artist && <h2>{artist}</h2> }
+                { album && <h1>{album}</h1> }
+                { title && <h1>"{title}"</h1> }
+                <p>{length > 1 && `${length} min`} { genre && ` | ${genre}`} { year && ` | ${year}`}</p>
+              </div>
+              <div className='waveform'>
+                <div className='wave'></div>
+              </div>
+              { showHelp && <div className="dropzoneInfo">
+                <input {...getInputProps()} />
+                <p>Drag 'n' drop MP3 file here,<br />
+                or click to browse files</p>
+              </div> }
+            </div>
+            <div className="buttons">
+              { length > 1 &&
+                <button className="generate" onClick={() => {
+                  this.exportFrames()
+                }}>Download as Video</button>
+              }
+            </div>
+          </section>
+        )}
+      </Dropzone>
     )
   }
 }

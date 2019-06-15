@@ -2,7 +2,7 @@
 	position: relative;
 	width: 640px;
 	height: 360px;
-	margin: 50px auto;
+	margin: 40px auto;
 	background: #333;
 	background: linear-gradient(to bottom, #000333 0%,#3f4c6b 100%);
 	overflow: hidden;
@@ -19,6 +19,7 @@
 	left: 0;
 	top: 0;
 	width: 100%;
+  margin-top: 40px;
 	text-align: center;
 }
 
@@ -33,10 +34,50 @@
 	color: #e7e9ed;
   font-size: 1.3em;
   font-weight: normal;
-  margin-top: 40px;
   margin-bottom: 0;
 }
 
 .info p {
 	color: #e7e8ec;
+}
+
+.dropzoneInfo {
+	position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  color: white;
+  font-size: 24px;
+  margin-top: 120px;
+  text-align: center;
+}
+
+.buttons {
+	display: flex;
+  width: 640px;
+  margin: auto;
+  justify-content: space-around;
+}
+
+button:focus, button:active {
+	outline: none;
+}
+
+.buttons button {
+	font-size: 28px;
+  border: none;
+  cursor: pointer;	
+  border-radius: 9px;
+  padding: 8px 20px 10px 20px;
+}
+
+button.play {  
+  color: white;
+  background: #6d778f;
+}
+
+button.generate {
+  color: white;
+  background: #673ab7;
 }
