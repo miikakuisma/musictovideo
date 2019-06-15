@@ -8,11 +8,11 @@ var html2canvas = require('html2canvas')
 let FPS = 1
 
 const waveStyle = {
-  barWidth: 2,
+  barWidth: 1,
   cursorWidth: 2,
   backend: 'WebAudio',
   width: 640,
-  height: 280,
+  height: 100,
   progressColor: '#ffc107',
   responsive: true,
   waveColor: '#fff',
@@ -28,6 +28,7 @@ class Waveform extends React.Component {
       duration: null,
       currentTime: null,
       currentFrame: null,
+      working: false,
       tags: {}
     }
   }
@@ -81,6 +82,7 @@ class Waveform extends React.Component {
   }
 
   exportFrames() {
+    this.setState({ working: true })
     this.frame = 1
     this.exportedImages = []
     this.exportTimer = setInterval(() => {
@@ -97,6 +99,7 @@ class Waveform extends React.Component {
       } else {
         clearInterval(this.exportTimer)
         console.log(this.frame + ' frames exported')
+        this.setState({ working: false })
         this.compressAndDownload()
         // this.uploadFrames()
       }  
@@ -104,6 +107,7 @@ class Waveform extends React.Component {
   }
 
   compressAndDownload() {
+    this.setState({ working: true })
     // Converts images from exportedImages into webm video
     const { artist, title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
@@ -113,6 +117,7 @@ class Waveform extends React.Component {
     a.download = `${artist}-${title}.webm`
     // Trigger download
     a.click();
+    this.setState({ working: false })
   }
 
   dataURLtoFile (dataurl, filename) {
@@ -152,7 +157,7 @@ class Waveform extends React.Component {
   }
   
   render() {
-    const { showHelp, duration } = this.state
+    const { showHelp, duration, working } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
@@ -173,7 +178,7 @@ class Waveform extends React.Component {
                 { artist && <h2>{artist}</h2> }
                 { album && <h1>{album}</h1> }
                 { title && <h1>"{title}"</h1> }
-                <p>{length > 1 && `${length} min`} { genre && ` | ${genre}`} { year && ` | ${year}`}</p>
+                <p>{ genre && genre} { year && year }</p>
               </div>
               <div className='waveform'>
                 <div className='wave'></div>
@@ -197,7 +202,7 @@ class Waveform extends React.Component {
               { length > 1 &&
                 <button className="generate" onClick={() => {
                   this.exportFrames()
-                }}>Download as Video</button>
+                }}>{!working ? 'Download as Video' : 'Creating Your Video...'}</button>
               }
             </div>
           </section>
