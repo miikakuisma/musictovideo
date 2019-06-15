@@ -158,13 +158,15 @@ class Waveform extends React.Component {
 
     return (
       <Dropzone
-        accept='.mp3, .wav'
+        accept='audio/mp3, audio/wav'
         onDrop={acceptedFiles => {
-          this.setState({ showHelp: false })
-          this.loadSound(acceptedFiles[0])
+          if (acceptedFiles.length > 0) {
+            this.setState({ showHelp: false })
+            this.loadSound(acceptedFiles[0])
+          }
         }}
       >
-        {({getRootProps, getInputProps}) => (
+        {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
           <section>
             <div className='waveformContainer' {...getRootProps()}>
               <div className="info">
@@ -176,10 +178,19 @@ class Waveform extends React.Component {
               <div className='waveform'>
                 <div className='wave'></div>
               </div>
-              { showHelp && <div className="dropzoneInfo">
+              { showHelp && !isDragActive && <div className="dropzoneInfo">
                 <input {...getInputProps()} />
+                <div className="icon add" />
                 <p>Drag 'n' drop MP3 file here,<br />
                 or click to browse files</p>
+              </div> }
+              { isDragActive && !isDragReject && <div className="dropzoneInfo withoverlay">
+                <div className="icon check" />
+                <p>Now drop it</p>
+              </div> }
+              { isDragReject && <div className="dropzoneInfo withoverlay">
+                <div className="icon reject" />
+                <p>File type not accepted, sorry!</p>
               </div> }
             </div>
             <div className="buttons">
