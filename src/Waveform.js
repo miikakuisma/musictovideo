@@ -7,18 +7,6 @@ var html2canvas = require('html2canvas')
 
 let FPS = 1
 
-const waveStyle = {
-  barWidth: 1,
-  cursorWidth: 2,
-  backend: 'WebAudio',
-  width: 640,
-  height: 100,
-  progressColor: '#ffc107',
-  responsive: true,
-  waveColor: '#fff',
-  cursorColor: 'transparent',
-}
-
 class Waveform extends React.Component {
   constructor(props) {
     super(props)
@@ -59,7 +47,7 @@ class Waveform extends React.Component {
   componentDidMount() {
     this.wavesurfer = WaveSurfer.create({
       container: document.querySelector('.waveform'),
-      ...waveStyle
+      ...this.props.theme
     })
     this.wavesurfer.on('loading', () => {
       this.setState({ analysing: true })
@@ -178,6 +166,7 @@ class Waveform extends React.Component {
   }
   
   render() {
+    const { format } = this.props
     const { showHelp, duration, working, analysing } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
@@ -194,7 +183,14 @@ class Waveform extends React.Component {
       >
         {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
           <div>
-            <div className='waveformContainer' {...getRootProps()}>
+            <div
+              className='waveformContainer'
+              style={{
+                width: `${format.width/2}px`,
+                height: `${format.height/2}px`
+              }}
+              {...getRootProps()}
+            >
               <div className="info">
                 { artist && <h2>{artist}</h2> }
                 { album && <h1>{album}</h1> }

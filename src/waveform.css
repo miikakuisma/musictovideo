@@ -1,7 +1,5 @@
 .waveformContainer {
 	position: relative;
-	width: 640px;
-	height: 360px;
 	margin: 40px auto;
 	background: #333;
 	background: linear-gradient(to bottom, #000333 0%,#3f4c6b 100%);
