@@ -28,6 +28,7 @@ class Waveform extends React.Component {
       duration: null,
       currentTime: null,
       currentFrame: null,
+      analysing: false,
       working: false,
       tags: {}
     }
@@ -60,20 +61,24 @@ class Waveform extends React.Component {
       container: document.querySelector('.waveform'),
       ...waveStyle
     })
+    this.wavesurfer.on('loading', () => {
+      this.setState({ analysing: true })
+    })
     this.wavesurfer.on('ready', () => {
       this.setState({
+        analysing: false,
         duration: this.wavesurfer.getDuration(),
         currentFrame: 0,
       })
     })
     this.wavesurfer.on('play', () => {
-      console.log('playback started')
+      // console.log('playback started')
     })
     this.wavesurfer.on('audioprocess', (e) => {
-      console.log('on audioprocess', e)
+      // console.log('on audioprocess', e)
     })
     this.wavesurfer.on('finish', () => {
-      console.log('playback finished')
+      // console.log('playback finished')
     })
     // this.wavesurfer.playPause()
     // .exportImage(format, quality)
@@ -173,7 +178,7 @@ class Waveform extends React.Component {
   }
   
   render() {
-    const { showHelp, duration, working } = this.state
+    const { showHelp, duration, working, analysing } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
@@ -199,6 +204,9 @@ class Waveform extends React.Component {
               <div className='waveform'>
                 <div className='wave'></div>
               </div>
+              { analysing && <div className="dropzoneInfo">
+                <p>Analysing..</p>
+              </div> }
               { showHelp && !isDragActive && <div className="dropzoneInfo">
                 <input {...getInputProps()} />
                 <div className="icon add" />
@@ -218,7 +226,7 @@ class Waveform extends React.Component {
               { length > 1 &&
                 <button className="generate" onClick={() => {
                   this.exportFrames()
-                }}>{!working ? 'Download' : 'Working..'}</button>
+                }}>{!working ? 'Create' : 'Working..'}</button>
               }
             </div>
           </div>
