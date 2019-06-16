@@ -94,8 +94,8 @@ class Waveform extends React.Component {
         console.log(this.frame + ' frames exported')
         this.setState({ working: false })
 
-        // ffmpeg -i "filename.webm" -qscale 0 "filename.mp4"
-        // ffmpeg -i Lifeline.mp4 -i public/lifeline.mp3 Output.mp4
+        // ffmpeg -i "MiikaKuisma-Lifeline.webm" -qscale 0 "temp.mp4"
+        // ffmpeg -i temp.mp4 -i public/lifeline.mp3 MiikaKuisma-Lifeline.mp4
 
         this.compressAndDownload()
         // this.uploadFrames()
@@ -166,7 +166,7 @@ class Waveform extends React.Component {
   }
   
   render() {
-    const { format } = this.props
+    const { format, elements } = this.props
     const { showHelp, duration, working, analysing } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
@@ -192,10 +192,10 @@ class Waveform extends React.Component {
               {...getRootProps()}
             >
               <div className="info">
-                { artist && <h2>{artist}</h2> }
-                { album && <h1>{album}</h1> }
-                { title && <h1>"{title}"</h1> }
-                <p>{ genre && genre} { year && year }</p>
+                { elements.artist && artist && <h2>{artist}</h2> }
+                { elements.album && album && <h1>{album}</h1> }
+                { elements.title && title && <h1>"{title}"</h1> }
+                <p>{ elements.genre && genre && genre} { year && year }</p>
               </div>
               <div className='waveform'>
                 <div className='wave'></div>
