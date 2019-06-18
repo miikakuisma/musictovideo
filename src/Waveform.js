@@ -136,10 +136,10 @@ class Waveform extends React.Component {
     return new File([u8arr], filename, { type: mime })
   }
 
-  uploadVideo(blob) {
-    axios.post("http://localhost:8000/uploadRender", blob)
+  async uploadVideo (blob) {
+    await axios.post("http://localhost:8000/uploadRender", blob)
     .then(res => {
-      console.log('Upload', res.statusText)
+      console.log('Upload', res.statusText, res.json, res)
     })
   }
 
