@@ -166,23 +166,23 @@ class Waveform extends React.Component {
     this.readTags(file)
   }
 
-  onChangeHandler (event) {
-    this.setState({
-      selectedFile: event.target.files[0],
-      loaded: 0,
-    })
-  }
+  // onChangeHandler (event) {
+  //   this.setState({
+  //     selectedFile: event.target.files[0],
+  //     loaded: 0,
+  //   })
+  // }
 
-  onClickHandler () {
-    const data = new FormData() 
-    data.append('file', this.state.selectedFile)
-    axios.post("http://localhost:8000/upload", data, { 
-      // receive two    parameter endpoint url ,form data
-    })
-    .then(res => { // then print response status
-      console.log(res.statusText)
-    })
-  }
+  // onClickHandler () {
+  //   const data = new FormData() 
+  //   data.append('file', this.state.selectedFile)
+  //   axios.post("http://localhost:8000/upload", data, { 
+  //     // receive two    parameter endpoint url ,form data
+  //   })
+  //   .then(res => { // then print response status
+  //     console.log(res.statusText)
+  //   })
+  // }
   
   render() {
     const { format, elements } = this.props
@@ -249,8 +249,8 @@ class Waveform extends React.Component {
                   this.exportFrames()
                 }}>{!working ? 'Create' : 'Working..'}</button>
               }
-              <input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
-              <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> 
+              {/*<input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
+              <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> */}
             </div>
           </div>
         )}
