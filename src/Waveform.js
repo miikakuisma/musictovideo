@@ -109,14 +109,16 @@ class Waveform extends React.Component {
     const { artist, title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
 
-    // this.uploadVideo(blob)
+    const data = new FormData()
+    data.append('file', blob, `${title}.webm`)
+    this.uploadVideo(data)
     
-    var a = document.createElement('a');
-    // Create download link
-    a.href = window.URL.createObjectURL(blob);
-    a.download = `${artist}-${title}.webm`
-    // Trigger download
-    a.click();
+    // var a = document.createElement('a');
+    // // Create download link
+    // a.href = window.URL.createObjectURL(blob);
+    // a.download = `${artist}-${title}.webm`
+    // // Trigger download
+    // a.click();
     this.setState({ working: false })
   }
 
@@ -135,9 +137,7 @@ class Waveform extends React.Component {
   }
 
   uploadVideo(blob) {
-    const data = new FormData()
-    data.append('file', blob, `${blob.name}.webm`)
-    axios.post("http://localhost:8000/upload", blob)
+    axios.post("http://localhost:8000/uploadRender", blob)
     .then(res => {
       console.log('Upload', res.statusText)
     })
@@ -150,9 +150,10 @@ class Waveform extends React.Component {
       const file = this.dataURLtoFile(image)
       const data = new FormData()
       data.append('file', file, `frame-${1000+index}.jpg`)
+      data.append('filename', file, `frame-${1000+index}.jpg`)
       axios.post("http://localhost:8000/upload", data)
       .then(res => {
-        console.log('Upload', res.statusText)
+        console.log('WebM uploaded', res.statusText)
       })
     })
   }
@@ -163,6 +164,24 @@ class Waveform extends React.Component {
     this.wavesurfer.loadBlob(file)
     // Read tags
     this.readTags(file)
+  }
+
+  onChangeHandler (event) {
+    this.setState({
+      selectedFile: event.target.files[0],
+      loaded: 0,
+    })
+  }
+
+  onClickHandler () {
+    const data = new FormData() 
+    data.append('file', this.state.selectedFile)
+    axios.post("http://localhost:8000/upload", data, { 
+      // receive two    parameter endpoint url ,form data
+    })
+    .then(res => { // then print response status
+      console.log(res.statusText)
+    })
   }
   
   render() {
@@ -178,6 +197,12 @@ class Waveform extends React.Component {
           if (acceptedFiles.length > 0) {
             this.setState({ showHelp: false })
             this.loadSound(acceptedFiles[0])
+            const data = new FormData() 
+            data.append('file', acceptedFiles[0])
+            axios.post("http://localhost:8000/uploadMusic", data)
+            .then(res => {
+              console.log('Audio uploaded', res.statusText)
+            })
           }
         }}
       >
@@ -224,6 +249,8 @@ class Waveform extends React.Component {
                   this.exportFrames()
                 }}>{!working ? 'Create' : 'Working..'}</button>
               }
+              <input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
+              <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> 
             </div>
           </div>
         )}
