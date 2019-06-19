@@ -18,6 +18,7 @@ class Waveform extends React.Component {
       currentFrame: null,
       analysing: false,
       working: false,
+      preparing: false,
       tags: {}
     }
   }
@@ -112,14 +113,6 @@ class Waveform extends React.Component {
     const data = new FormData()
     data.append('file', blob, `${title}.webm`)
     this.uploadVideo(data)
-    
-    // var a = document.createElement('a');
-    // // Create download link
-    // a.href = window.URL.createObjectURL(blob);
-    // a.download = `${artist}-${title}.webm`
-    // // Trigger download
-    // a.click();
-    this.setState({ working: false })
   }
 
   dataURLtoFile (dataurl, filename) {
@@ -137,10 +130,39 @@ class Waveform extends React.Component {
   }
 
   async uploadVideo (blob) {
+    this.setState({
+      working: false,
+      preparing: true
+    })
     await axios.post("http://localhost:8000/uploadRender", blob)
     .then(res => {
       console.log('Upload', res.statusText, res.json, res)
+      // Create download link
+      var a = document.createElement('a');
+      a.href = 'http://localhost:8000/download/' + res.data.filename
+      // a.download = `${artist}-${title}.webm`
+      // Trigger download
+      a.click();
+      this.setState({
+        preparing: false
+      })
+      this.reset()
     })
+  }
+
+  reset() {
+    this.setState = {
+      showHelp: true,
+      ready: null,
+      duration: null,
+      currentTime: null,
+      currentFrame: null,
+      analysing: false,
+      working: false,
+      preparing: false,
+      tags: {}
+    }
+    this.wavesurfer.empty();
   }
 
   uploadFrames() {
@@ -186,7 +208,7 @@ class Waveform extends React.Component {
   
   render() {
     const { format, elements } = this.props
-    const { showHelp, duration, working, analysing } = this.state
+    const { showHelp, duration, working, preparing, analysing } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
@@ -204,6 +226,9 @@ class Waveform extends React.Component {
               console.log('Audio uploaded', res.statusText)
             })
           }
+        }}
+        queueComplete={() => {
+          this.removeAllFiles();
         }}
       >
         {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
@@ -242,12 +267,18 @@ class Waveform extends React.Component {
                 <div className="icon reject" />
                 <p>File type not accepted, sorry!</p>
               </div> }
+              { preparing && <div className="dropzoneInfo withoverlay">
+                <p>Preparing download</p>
+              </div> }
             </div>
             <div className="buttons">
               { length > 1 &&
-                <button className="generate" onClick={() => {
+                <button
+                  className="generate"
+                  style={{ background: (working || preparing) && 'transparent' }}
+                  onClick={() => {
                   this.exportFrames()
-                }}>{!working ? 'Create' : 'Working..'}</button>
+                }}>{!working && !preparing ? 'Create' : 'Working..'}</button>
               }
               {/*<input type="file" name="file" onChange={this.onChangeHandler.bind(this)}/>
               <button type="button" onClick={this.onClickHandler.bind(this)}>Upload</button> */}

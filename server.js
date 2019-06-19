@@ -17,6 +17,17 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage }).single('file')
 
+app.get('/download/:file(*)',(req, res) => {
+  console.log('download', req.params.file)
+  var file = req.params.file;
+  res.download('downloads/' + file); 
+});
+
+app.get('/downloadtest', (req, res) => {
+  console.log('yo')
+  res.download('pre_anticipating.webm.mp4')
+})
+
 app.post('/uploadRender',function(req, res) {
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
@@ -36,14 +47,14 @@ app.post('/uploadRender',function(req, res) {
       }
 
       // Then attach the uploaded audio track
-      exec('ffmpeg -i temp.mp4 -i uploads/' + uploadedFilename.replace('.webm', '.mp3') + ' ' + uploadedFilename + '.mp4', (err, stdout, stderr) => {
+      exec('ffmpeg -i temp.mp4 -i uploads/' + uploadedFilename.replace('.webm', '.mp3') + ' downloads/' + uploadedFilename.replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
         if (err) {
           console.error(`exec error: ${err}`);
           return;
         }
 
-        // Return with link
-        res.status(200).json({ filename: 'http://localhost:3000/' + uploadedFilename.replace('.webm', '.mp4') })
+         // Return with link
+        res.status(200).json({ filename: uploadedFilename.replace('.webm', '.mp4') })
       });
     });
 
