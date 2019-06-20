@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import './waveform.css'
 var html2canvas = require('html2canvas')
 
-let FPS = 1
+let FPS = 2
 
 class Waveform extends React.Component {
   constructor(props) {
@@ -80,8 +80,8 @@ class Waveform extends React.Component {
     this.frame = 1
     this.exportedImages = []
     this.exportTimer = setInterval(() => {
-      if (this.frame <= this.state.duration) {
-        const nextFrame = 1/this.state.duration * this.frame
+      if (this.frame <= (this.state.duration * FPS)) {
+        const nextFrame = 1/(this.state.duration * FPS) * this.frame
         this.wavesurfer.seekTo(nextFrame)
         html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
           this.exportedImages.push(canvas.toDataURL("image/webp"))
@@ -101,7 +101,7 @@ class Waveform extends React.Component {
         this.compressAndDownload()
         // this.uploadFrames()
       }  
-    }, 10)
+    })
   }
 
   compressAndDownload() {
@@ -226,9 +226,6 @@ class Waveform extends React.Component {
               console.log('Audio uploaded', res.statusText)
             })
           }
-        }}
-        queueComplete={() => {
-          this.removeAllFiles();
         }}
       >
         {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
