@@ -1,15 +1,24 @@
+*:focus {
+	outline: none;
+}
+
 .waveformContainer {
 	position: relative;
 	margin: 40px auto;
 	background: #333;
 	background: linear-gradient(to bottom, #000333 0%,#3f4c6b 100%);
-	overflow: hidden;
 }
 
 .waveform {
-	margin-top: 220px;
-  height: 140px;
+	position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+	padding-top: 220px;
+  height: 180px;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .info {
@@ -37,6 +46,11 @@
 
 .info p {
 	color: #e7e8ec;
+}
+
+.dropzoneContainer {
+	width: 100%;
+	height: 100%;
 }
 
 .dropzoneInfo {
@@ -91,7 +105,7 @@
 .buttons {
 	display: flex;
   width: 640px;
-  margin: auto;
+	margin: 30px auto;
   justify-content: space-around;
 }
 

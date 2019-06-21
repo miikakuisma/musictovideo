@@ -15,11 +15,6 @@ const waveStyle = {
   cursorColor: 'transparent',
 }
 
-const format = {
-  width: 1280,
-  height: 720
-}
-
 const outputFormats = [
   {
     name: '360p',

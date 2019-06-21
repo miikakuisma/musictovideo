@@ -12,7 +12,6 @@ class Waveform extends React.Component {
     super(props)
     this.state = {
       showHelp: true,
-      ready: null,
       duration: null,
       currentTime: null,
       currentFrame: null,
@@ -29,7 +28,6 @@ class Waveform extends React.Component {
     var jsmediatags = require("jsmediatags");
     jsmediatags.read(file, {
       onSuccess: (tag) => {
-        console.log(tag)
         this.setState({ tags: tag.tags })
       },
       onError: (error) => {
@@ -77,6 +75,27 @@ class Waveform extends React.Component {
     // .loadBlob(url) – Loads audio from a Blob or File object.
   }
 
+  handleDropFile(acceptedFiles) {
+    if (acceptedFiles.length > 0) {
+      const _this = this
+      this.setState({ showHelp: false })
+      this.loadSound(acceptedFiles[0])
+      const data = new FormData() 
+      data.append('file', acceptedFiles[0])
+      axios.post("http://localhost:8000/uploadMusic", data)
+      .then(res => {
+        _this.setState({ uploadedAudioFilename: res.data.filename })
+      })
+    }
+  }
+
+  loadSound(file) {
+    // Analyse waveform
+    this.wavesurfer.loadBlob(file)
+    // Read tags
+    this.readTags(file)
+  }
+
   exportFrames() {
     this.setState({ working: true })
     this.frame = 1
@@ -94,77 +113,66 @@ class Waveform extends React.Component {
         })
       } else {
         clearInterval(this.exportTimer)
-        console.log(this.frame + ' frames exported')
         this.setState({ working: false })
-
-        // ffmpeg -i "MiikaKuisma-Lifeline.webm" -qscale 0 "temp.mp4"
-        // ffmpeg -i temp.mp4 -i public/lifeline.mp3 MiikaKuisma-Lifeline.mp4
-
-        this.compressAndDownload()
-        // this.uploadFrames()
+        // Merge exported images into video
+        this.mergeFrames()
       }  
     })
   }
 
-  compressAndDownload() {
+  mergeFrames() {
     this.setState({ working: true })
-    // Converts images from exportedImages into webm video
-    const { artist, title } = this.state.tags
+    const { title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
     const timestamp = Date.now()
     const data = new FormData()
     data.append('file', blob, `${timestamp}${this.state.uploadedAudioFilename.replace('.mp3', '')}.webm`)
     this.uploadVideo({
       blob: data,
-      artist,
       title,
-      timestamp,
     })
   }
 
-  async uploadVideo (payload) {
+  async uploadVideo(payload) {
     this.setState({
       working: false,
       preparing: true
     })
     await axios.post("http://localhost:8000/uploadRender", payload.blob)
     .then(res => {
-      console.log('Upload', res.statusText, res.json, res)
-      // Create download link
-      var a = document.createElement('a');
-      a.href = 'http://localhost:8000/download/' + res.data.filename
-      a.download = `${payload.title}.mp4`
-      // Trigger download
-      a.click();
-      this.setState({
-        preparing: false
-      })
-      this.reset()
+      // Download when all done
+      this.downloadVideo(res, payload.title)
     })
   }
 
-  reset() {
+  downloadVideo(res, title) {
+    var a = document.createElement('a');
+    a.href = 'http://localhost:8000/download/' + res.data.filename
+    a.download = `${title}.mp4`
+    a.click();
+    this.setState({
+      preparing: false,
+    })
+    // Clear the state and reset dropzone
+    this.resetAll()
+  }
+
+  resetAll() {
     this.setState = {
       showHelp: true,
-      ready: null,
-      duration: null,
-      currentTime: null,
-      currentFrame: null,
       analysing: false,
       working: false,
       preparing: false,
-      tags: {}
+      uploadedAudioFilename: null,
+      tags: {
+        album: 'Unknown',
+        artist: 'Unknown',
+        title: 'Unknown',
+        genre: 'Unknown',
+        year: 'Unknown',
+      }
     }
-    this.wavesurfer.empty();
-  }
-
-  loadSound(file) {
-    // This will load new music file and prepares it for conversion
-    // Analyse waveform
-    console.log(file)
-    this.wavesurfer.loadBlob(file)
-    // Read tags
-    this.readTags(file)
+    this.wavesurfer.empty()
   }
 
   render() {
@@ -174,76 +182,65 @@ class Waveform extends React.Component {
     const { album, artist, title, genre, year } = this.state.tags
 
     return (
-      <Dropzone
-        accept='audio/mp3, audio/wav'
-        onDrop={acceptedFiles => {
-          if (acceptedFiles.length > 0) {
-            this.setState({ showHelp: false })
-            this.loadSound(acceptedFiles[0])
-            const data = new FormData() 
-            data.append('file', acceptedFiles[0])
-            axios.post("http://localhost:8000/uploadMusic", data)
-            .then(res => {
-              this.setState({ uploadedAudioFilename: res.data.filename })
-              console.log('res', res)
-              console.log('Audio uploaded', res.statusText)
-            })
-          }
+      <div
+        className='waveformContainer'
+        style={{
+          width: `${format.width/2}px`,
+          height: `${format.height/2}px`
         }}
       >
-        {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
-          <div>
-            <div
-              className='waveformContainer'
-              style={{
-                width: `${format.width/2}px`,
-                height: `${format.height/2}px`
-              }}
-              {...getRootProps()}
-            >
-              <div className="info">
-                { elements.artist && artist && <h2>{artist}</h2> }
-                { elements.album && album && <h1>{album}</h1> }
-                { elements.title && title && <h1>"{title}"</h1> }
-                <p>{ elements.genre && genre && genre} { year && year }</p>
-              </div>
-              <div className='waveform'>
-                <div className='wave'></div>
-              </div>
-              { analysing && <div className="dropzoneInfo">
-                <p>Analysing..</p>
-              </div> }
-              { showHelp && !isDragActive && <div className="dropzoneInfo">
+        <div className="dropzoneContainer">
+          <Dropzone
+            accept='audio/mp3, audio/wav'
+            onDrop={this.handleDropFile.bind(this)}
+          >
+            {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
+              <div className="dropzoneContainer" {...getRootProps()}>
                 <input {...getInputProps()} />
-                <div className="icon add" />
-                <p>Drop music file here,<br />
-                or click to browse files</p>
-              </div> }
-              { isDragActive && !isDragReject && <div className="dropzoneInfo withoverlay">
-                <div className="icon check" />
-                <p>Looking good!</p>
-              </div> }
-              { isDragReject && <div className="dropzoneInfo withoverlay">
-                <div className="icon reject" />
-                <p>File type not accepted, sorry!</p>
-              </div> }
-              { preparing && <div className="dropzoneInfo withoverlay">
-                <p>Preparing download</p>
-              </div> }
-            </div>
-            <div className="buttons">
-              { length > 1 &&
-                <button
-                  className="generate"
-                  style={{ background: (working || preparing) && 'transparent' }}
-                  onClick={() => {
-                  this.exportFrames()
-                }}>{!working && !preparing ? 'Create' : 'Working..'}</button>
-              }
-            </div>
-          </div>
-        )}
-      </Dropzone>
+                { analysing && <div className="dropzoneInfo">
+                  <p>Analysing..</p>
+                </div> }
+                { showHelp && !isDragActive && <div className="dropzoneInfo">
+                  <div className="icon add" />
+                  <p>Drop music file here,<br />
+                  or click to browse files</p>
+                </div> }
+                { isDragActive && !isDragReject && <div className="dropzoneInfo withoverlay">
+                  <div className="icon check" />
+                  <p>Looking good!</p>
+                </div> }
+                { isDragReject && <div className="dropzoneInfo withoverlay">
+                  <div className="icon reject" />
+                  <p>File type not accepted, sorry!</p>
+                </div> }
+              </div>
+            )}
+          </Dropzone>
+        </div>
+        <div className="info">
+          { elements.artist && artist && <h2>{artist}</h2> }
+          { elements.album && album && <h1>{album}</h1> }
+          { elements.title && title && <h1>"{title}"</h1> }
+          <p>{ elements.genre && genre && genre} { year && year }</p>
+          { preparing && <div className="dropzoneInfo withoverlay">
+            <p>Preparing download</p>
+          </div> }
+        </div>
+        <div className='waveform'>
+          <div className='wave'></div>
+        </div>
+        <div className="buttons">
+          { length > 1 &&
+            <button
+              className="generate"
+              style={{ background: (working || preparing) && 'transparent' }}
+              onClick={() => {
+              this.exportFrames()
+            }}>{!working && !preparing ? 'Create' : 'Working..'}</button>
+          }
+          <button onClick={this.resetAll.bind(this)}>Reset</button>
+        </div>
+      </div>
     )
   }
 }

@@ -34,13 +34,13 @@ app.post('/uploadRender',function(req, res) {
     }
     const uploadedFilename = (req.file && req.file.filename)
     // Convert webm to mp4
-    exec('ffmpeg -i "uploads/' + uploadedFilename + '" -qscale 0 "temp/' + uploadedFilename + '.mp4"', (err, stdout, stderr) => {
+    exec('ffmpeg -i "uploads/' + uploadedFilename + '" -qscale 0 -y "temp/' + uploadedFilename + '.mp4"', (err, stdout, stderr) => {
       if (err) {
         console.error(`exec error: ${err}`);
         return;
       }
       // Then attach the uploaded audio track
-      exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3') + ' downloads/' + uploadedFilename.slice(13).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
+      exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3') + ' -y downloads/' + uploadedFilename.slice(13).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
         if (err) {
           console.error(`exec error: ${err}`);
           return;
