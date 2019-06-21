@@ -109,38 +109,31 @@ class Waveform extends React.Component {
     // Converts images from exportedImages into webm video
     const { artist, title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-
+    const timestamp = Date.now()
     const data = new FormData()
-    data.append('file', blob, `${title}.webm`)
-    this.uploadVideo(data)
+    // Create sanitized filename with timstamp
+    console.log(`${timestamp}-${title.replace(/\W+/g, '')}.webm`)
+    data.append('file', blob, `${timestamp}-${title.replace(/\W+/g, '')}.webm`)
+    this.uploadVideo({
+      blob: data,
+      artist,
+      title,
+      timestamp
+    })
   }
 
-  dataURLtoFile (dataurl, filename) {
-    // Converts base64 image data into an image file that can be uploaded
-    const arr = dataurl.split(',')
-    const mime = arr[0].match(/:(.*?);/)[1]
-    const bstr = atob(arr[1])
-    let n = bstr.length
-    const u8arr = new Uint8Array(n)
-    while (n) {
-      u8arr[n-1] = bstr.charCodeAt(n-1)
-      n -= 1 // to make eslint happy
-    }
-    return new File([u8arr], filename, { type: mime })
-  }
-
-  async uploadVideo (blob) {
+  async uploadVideo (payload) {
     this.setState({
       working: false,
       preparing: true
     })
-    await axios.post("http://localhost:8000/uploadRender", blob)
+    await axios.post("http://localhost:8000/uploadRender", payload.blob)
     .then(res => {
       console.log('Upload', res.statusText, res.json, res)
       // Create download link
       var a = document.createElement('a');
       a.href = 'http://localhost:8000/download/' + res.data.filename
-      // a.download = `${artist}-${title}.webm`
+      a.download = `${payload.title}.mp4`
       // Trigger download
       a.click();
       this.setState({
@@ -165,20 +158,34 @@ class Waveform extends React.Component {
     this.wavesurfer.empty();
   }
 
-  uploadFrames() {
-    // Process exported base64 images into image files and
-    // send them to server for processing
-    this.exportedImages.forEach((image, index) => {
-      const file = this.dataURLtoFile(image)
-      const data = new FormData()
-      data.append('file', file, `frame-${1000+index}.jpg`)
-      data.append('filename', file, `frame-${1000+index}.jpg`)
-      axios.post("http://localhost:8000/upload", data)
-      .then(res => {
-        console.log('WebM uploaded', res.statusText)
-      })
-    })
-  }
+  // dataURLtoFile (dataurl, filename) {
+  //   // Converts base64 image data into an image file that can be uploaded
+  //   const arr = dataurl.split(',')
+  //   const mime = arr[0].match(/:(.*?);/)[1]
+  //   const bstr = atob(arr[1])
+  //   let n = bstr.length
+  //   const u8arr = new Uint8Array(n)
+  //   while (n) {
+  //     u8arr[n-1] = bstr.charCodeAt(n-1)
+  //     n -= 1 // to make eslint happy
+  //   }
+  //   return new File([u8arr], filename, { type: mime })
+  // }
+
+  // uploadFrames() {
+  //   // Process exported base64 images into image files and
+  //   // send them to server for processing
+  //   this.exportedImages.forEach((image, index) => {
+  //     const file = this.dataURLtoFile(image)
+  //     const data = new FormData()
+  //     data.append('file', file, `frame-${1000+index}.jpg`)
+  //     data.append('filename', file, `frame-${1000+index}.jpg`)
+  //     axios.post("http://localhost:8000/upload", data)
+  //     .then(res => {
+  //       console.log('WebM uploaded', res.statusText)
+  //     })
+  //   })
+  // }
 
   loadSound(file) {
     // This will load new music file and prepares it for conversion

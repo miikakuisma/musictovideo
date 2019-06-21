@@ -18,15 +18,10 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage }).single('file')
 
 app.get('/download/:file(*)',(req, res) => {
-  console.log('download', req.params.file)
   var file = req.params.file;
   res.download('downloads/' + file); 
 });
 
-app.get('/downloadtest', (req, res) => {
-  console.log('yo')
-  res.download('pre_anticipating.webm.mp4')
-})
 
 app.post('/uploadRender',function(req, res) {
   upload(req, res, function (err) {
@@ -35,30 +30,23 @@ app.post('/uploadRender',function(req, res) {
     } else if (err) {
       return res.status(500).json(err)
     }
-    console.log(req.file)
-    const uploadedFilename = (req.file && req.file.filename) || 'temp.mp3'
-    console.log(uploadedFilename)
-
+    const uploadedFilename = (req.file && req.file.filename)
     // Convert webm to mp4
-    exec('ffmpeg -i "uploads/' + uploadedFilename + '" -qscale 0 "temp.mp4"', (err, stdout, stderr) => {
+    exec('ffmpeg -i "uploads/' + uploadedFilename + '" -qscale 0 "temp/' + uploadedFilename + '.mp4"', (err, stdout, stderr) => {
       if (err) {
         console.error(`exec error: ${err}`);
         return;
       }
-
       // Then attach the uploaded audio track
-      exec('ffmpeg -i temp.mp4 -i uploads/' + uploadedFilename.replace('.webm', '.mp3') + ' downloads/' + uploadedFilename.replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
+      exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(14).replace('.webm', '.mp3') + ' downloads/' + uploadedFilename.slice(14).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
         if (err) {
           console.error(`exec error: ${err}`);
           return;
         }
-
-         // Return with link
-        res.status(200).json({ filename: uploadedFilename.replace('.webm', '.mp4') })
+        // Return with link
+        res.status(200).json({ filename: uploadedFilename.slice(14).replace('.webm', '.mp4') })
       });
     });
-
-    // return res.status(200).send(req.file)
   })
 });
 
@@ -69,7 +57,6 @@ app.post('/uploadMusic',function(req, res) {
     } else if (err) {
       return res.status(500).json(err)
     }
-    console.log(req)
     return res.status(200).send(req.file)
   })
 });
