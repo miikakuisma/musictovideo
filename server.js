@@ -11,7 +11,9 @@ var storage = multer.diskStorage({
     cb(null, 'uploads')
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname)
+    var extension = file.originalname.split('.').slice(0).pop();
+    var sanitized = file.originalname.replace(extension, '').replace(/\W+/g, '') + "." + extension;
+    cb(null, sanitized)
   }
 })
 
@@ -38,13 +40,13 @@ app.post('/uploadRender',function(req, res) {
         return;
       }
       // Then attach the uploaded audio track
-      exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(14).replace('.webm', '.mp3') + ' downloads/' + uploadedFilename.slice(14).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
+      exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3') + ' downloads/' + uploadedFilename.slice(13).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
         if (err) {
           console.error(`exec error: ${err}`);
           return;
         }
         // Return with link
-        res.status(200).json({ filename: uploadedFilename.slice(14).replace('.webm', '.mp4') })
+        res.status(200).json({ filename: uploadedFilename.slice(13).replace('.webm', '.mp4') })
       });
     });
   })
@@ -57,7 +59,7 @@ app.post('/uploadMusic',function(req, res) {
     } else if (err) {
       return res.status(500).json(err)
     }
-    return res.status(200).send(req.file)
+    return res.status(200).json({ filename: req.file && req.file.filename })
   })
 });
 
