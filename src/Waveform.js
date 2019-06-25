@@ -12,6 +12,7 @@ class Waveform extends React.Component {
     super(props)
     this.state = {
       showHelp: true,
+      showDetails: false,
       duration: null,
       currentTime: null,
       currentFrame: null,
@@ -28,7 +29,10 @@ class Waveform extends React.Component {
     var jsmediatags = require("jsmediatags");
     jsmediatags.read(file, {
       onSuccess: (tag) => {
-        this.setState({ tags: tag.tags })
+        this.setState({
+          showDetails: true,
+          tags: tag.tags
+        })
       },
       onError: (error) => {
         this.setState({ tags: 
@@ -153,31 +157,11 @@ class Waveform extends React.Component {
     this.setState({
       preparing: false,
     })
-    // Clear the state and reset dropzone
-    this.resetAll()
-  }
-
-  resetAll() {
-    this.setState = {
-      showHelp: true,
-      analysing: false,
-      working: false,
-      preparing: false,
-      uploadedAudioFilename: null,
-      tags: {
-        album: 'Unknown',
-        artist: 'Unknown',
-        title: 'Unknown',
-        genre: 'Unknown',
-        year: 'Unknown',
-      }
-    }
-    this.wavesurfer.empty()
   }
 
   render() {
     const { format, elements } = this.props
-    const { showHelp, duration, working, preparing, analysing } = this.state
+    const { showHelp, showDetails, duration, working, preparing, analysing } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
@@ -191,15 +175,12 @@ class Waveform extends React.Component {
       >
         <div className="dropzoneContainer">
           <Dropzone
-            accept='audio/mp3, audio/wav'
+            accept='audio/mp3'
             onDrop={this.handleDropFile.bind(this)}
           >
             {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
               <div className="dropzoneContainer" {...getRootProps()}>
                 <input {...getInputProps()} />
-                { analysing && <div className="dropzoneInfo">
-                  <p>Analysing..</p>
-                </div> }
                 { showHelp && !isDragActive && <div className="dropzoneInfo">
                   <div className="icon add" />
                   <p>Drop music file here,<br />
@@ -213,18 +194,20 @@ class Waveform extends React.Component {
                   <div className="icon reject" />
                   <p>File type not accepted, sorry!</p>
                 </div> }
+                { preparing && <div className="dropzoneInfo withoverlay">
+                  <p>Preparing download</p>
+                </div> }
+                { analysing && <div className="dropzoneInfo">
+                  <p>Analysing..</p>
+                </div> }
               </div>
             )}
           </Dropzone>
         </div>
         <div className="info">
           { elements.artist && artist && <h2>{artist}</h2> }
-          { elements.album && album && <h1>{album}</h1> }
           { elements.title && title && <h1>"{title}"</h1> }
-          <p>{ elements.genre && genre && genre} { year && year }</p>
-          { preparing && <div className="dropzoneInfo withoverlay">
-            <p>Preparing download</p>
-          </div> }
+          <p>{ elements.album && album } { elements.genre && genre} { year && year }</p>
         </div>
         <div className='waveform'>
           <div className='wave'></div>
@@ -236,10 +219,61 @@ class Waveform extends React.Component {
               style={{ background: (working || preparing) && 'transparent' }}
               onClick={() => {
               this.exportFrames()
-            }}>{!working && !preparing ? 'Create' : 'Working..'}</button>
+            }}>{!working && !preparing ? 'Convert' : 'Working..'}</button>
           }
-          <button onClick={this.resetAll.bind(this)}>Reset</button>
         </div>
+        { showDetails && <div className="editor">
+          <div className="item">
+            <label>Artist</label>
+            <input
+              type="text"
+              defaultValue={artist}
+              onChange={(e) => {
+                this.setState({ tags: {...this.state.tags, artist: e.target.value} })
+              }}
+            />
+          </div>
+          <div className="item">
+            <label>Title</label>
+            <input
+              type="text"
+              defaultValue={title}
+              onChange={(e) => {
+                this.setState({ tags: {...this.state.tags, title: e.target.value} })
+              }}
+            />
+          </div>
+          <div className="item">
+            <label>Album</label>
+            <input
+              type="text"
+              defaultValue={album}
+              onChange={(e) => {
+                this.setState({ tags: {...this.state.tags, album: e.target.value} })
+              }}
+            />
+          </div>
+          <div className="item">
+            <label>Genre</label>
+            <input
+              type="text"
+              defaultValue={genre}
+              onChange={(e) => {
+                this.setState({ tags: {...this.state.tags, genre: e.target.value} })
+              }}
+            />
+          </div>
+          <div className="item">
+            <label>Year</label>
+            <input
+              type="text"
+              defaultValue={year}
+              onChange={(e) => {
+                this.setState({ tags: {...this.state.tags, year: e.target.value} })
+              }}
+            />
+          </div>
+        </div> }
       </div>
     )
   }

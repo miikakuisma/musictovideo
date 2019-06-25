@@ -131,3 +131,18 @@ button.generate {
   color: white;
   background: #673ab7;
 }
+
+.editor {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.editor .item {
+	margin: 20px;
+}
+
+.editor label {
+	color: white;
+	margin: 10px;
+}
+
