@@ -1,5 +1,6 @@
 var express = require('express');
 var app = express();
+const port = process.env.PORT || 5000;
 var multer = require('multer')
 var cors = require('cors');
 const { exec } = require('child_process');
@@ -19,11 +20,14 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage }).single('file')
 
+app.get('/express_backend', (req, res) => {
+  res.send({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' });
+});
+
 app.get('/download/:file(*)',(req, res) => {
   var file = req.params.file;
   res.download('downloads/' + file); 
 });
-
 
 app.post('/uploadRender',function(req, res) {
   upload(req, res, function (err) {
@@ -63,6 +67,6 @@ app.post('/uploadMusic',function(req, res) {
   })
 });
 
-app.listen(8000, function() {
-  console.log('App running on port 8000');
+app.listen(port, function() {
+  console.log(`App running on port ${port}`);
 });

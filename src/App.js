@@ -61,9 +61,26 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      selectedFormat: 720
+      selectedFormat: 720,
+      data: null
     }
   }
+
+  componentDidMount() {
+    this.callBackendAPI()
+      .then(res => this.setState({ data: res.express }))
+      .catch(err => console.log(err));
+  }
+
+  async callBackendAPI () {
+    const response = await fetch('/express_backend');
+    const body = await response.json();
+
+    if (response.status !== 200) {
+      throw Error(body.message) 
+    }
+    return body;
+  };
 
   handleFormatChange(event) {
     console.log('event.target.value', event.target.value)
@@ -71,6 +88,7 @@ class App extends React.Component {
   }
 
   render() {
+    console.log(this.state.data)
     const { selectedFormat } = this.state
 
     const formatOptions = outputFormats.map((format, index) => <option
