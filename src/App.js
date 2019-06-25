@@ -88,16 +88,15 @@ class App extends React.Component {
   }
 
   render() {
-    console.log(this.state.data)
     const { selectedFormat } = this.state
 
-    const formatOptions = outputFormats.map((format, index) => <option
-      key={index}
-      value={format.value}
-    >{format.name}</option>)
+    // const formatOptions = outputFormats.map((format, index) => <option
+    //   key={index}
+    //   value={format.value}
+    // >{format.name}</option>)
 
-    console.log('selectedFormat', selectedFormat)
-    console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
+    // console.log('selectedFormat', selectedFormat)
+    // console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
 
     return (
       <div className="appContainer">
@@ -106,14 +105,14 @@ class App extends React.Component {
           format={outputFormats.find(format => format.value === selectedFormat).size}
           elements={elements}
         />
-        <div className="formatSelector">
+        {/*<div className="formatSelector">
           <select
             defaultValue={selectedFormat}
             onChange={this.handleFormatChange.bind(this)}
           >
             {formatOptions}
           </select>
-        </div>
+        </div>*/}
       </div>
     )
   }
