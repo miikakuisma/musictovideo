@@ -1,4 +1,5 @@
 import React from 'react'
+import { Pane } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
 require('./whammy.js')
@@ -106,21 +107,32 @@ class App extends React.Component {
     // console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
 
     return (
-      <div className="appContainer">
-        {!error ? <Waveform
-          theme={waveStyle}
-          format={outputFormats.find(format => format.value === selectedFormat).size}
-          elements={elements}
-        /> : <h1 style={{ color: 'white' }}>{error}</h1> }
-        {/*<div className="formatSelector">
-          <select
-            defaultValue={selectedFormat}
-            onChange={this.handleFormatChange.bind(this)}
-          >
-            {formatOptions}
-          </select>
-        </div>*/}
-      </div>
+      <Pane clearfix>
+        <Pane
+          elevation={1}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          flexDirection="column"
+          backgroundColor="white"
+        >
+          {!error ? <Waveform
+            theme={waveStyle}
+            format={outputFormats.find(format => format.value === selectedFormat).size}
+            elements={elements}
+          /> : <h1 style={{ color: 'white' }}>{error}</h1> }
+          {/*<div className="formatSelector">
+            <select
+              defaultValue={selectedFormat}
+              onChange={this.handleFormatChange.bind(this)}
+            >
+              {formatOptions}
+            </select>
+          </div>*/}
+        </Pane>
+      </Pane>
     )
   }
 }
