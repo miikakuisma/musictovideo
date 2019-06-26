@@ -24,7 +24,9 @@ class Waveform extends React.Component {
       downloadLink: null,
       tags: {},
       uploadedAudioFilename: null,
-      error: null
+      error: null,
+      uploadTotal: null,
+      uploadProgress: null
     }
   }
 
@@ -118,7 +120,10 @@ class Waveform extends React.Component {
   }
 
   exportFrames() {
-    this.setState({ working: true })
+    this.setState({
+      working: true,
+      showDetails: false,
+    })
     this.frame = 1
     this.exportedImages = []
     this.exportTimer = setInterval(() => {
@@ -174,9 +179,21 @@ class Waveform extends React.Component {
       working: false,
       preparing: true
     })
-    await axios.post(APIURL + "uploadRender", payload.blob)
+    const config = {
+      onUploadProgress: (progressEvent) => {
+        this.setState({
+          uploadProgress: progressEvent.loaded,
+          uploadTotal: progressEvent.total
+        })
+      }
+    }
+    await axios.post(APIURL + "uploadRender", payload.blob, config)
     .then(res => {
       console.log(res)
+      this.setState({
+        uploadProgress: null,
+        uploadTotal: null
+      })
       // Download when all done
       this.downloadVideo(res, payload.title)
     })
@@ -206,7 +223,7 @@ class Waveform extends React.Component {
 
   render() {
     const { format, elements } = this.props
-    const { showHelp, showDetails, duration, working, preparing, downloadLink, analysing, error } = this.state
+    const { showHelp, showDetails, duration, working, preparing, downloadLink, analysing, error, uploadTotal, uploadProgress } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
@@ -258,14 +275,14 @@ class Waveform extends React.Component {
           <div className='wave'></div>
         </div>
         <div className="buttons">
-          { length > 1 && !error &&
+          { length > 1 && !downloadLink && !error &&
             <button
               className="generate"
               style={{ background: (working || preparing) && 'transparent' }}
               onClick={() => {
                 this.exportFrames()
               }}
-            >{this.getButtonText()}</button>
+            >{this.getButtonText()} {uploadTotal && `${Math.floor((100/uploadTotal) * uploadProgress)}%`}</button>
           }
           { downloadLink && <button
             className="download"
@@ -274,7 +291,7 @@ class Waveform extends React.Component {
             }}
             >Download Video</button>}
         </div>
-        { showDetails && !working && !preparing && <div className="editor">
+        { showDetails && <div className="editor">
           <div className="item">
             <label>Artist</label>
             <input
