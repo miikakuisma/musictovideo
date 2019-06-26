@@ -237,7 +237,8 @@ class Waveform extends React.Component {
         className='waveformContainer'
         style={{
           width: `${format.width/2}px`,
-          height: `${format.height/2}px`
+          height: `${format.height/2}px`,
+          background: showHelp ? '#333' : 'linear-gradient(to bottom, #000333 0%,#3f4c6b 100%)'
         }}
       >
         <div className="dropzoneContainer">
@@ -250,8 +251,7 @@ class Waveform extends React.Component {
                 <input {...getInputProps()} />
                 { showHelp && !isDragActive && <div className="dropzoneInfo">
                   <div className="icon add" />
-                  <p>Drop music file here,<br />
-                  or click to browse files</p>
+                  <p>Drop MP3 file here</p>
                 </div> }
                 { isDragActive && !isDragReject && <div className="dropzoneInfo withoverlay">
                   <div className="icon check" />
