@@ -287,7 +287,7 @@ class Waveform extends React.Component {
               onClick={() => {
                 this.exportFrames()
               }}
-            >{this.getButtonText()} {uploadTotal && `${Math.floor((100/uploadTotal) * uploadProgress)}%`}</button>
+            >{this.getButtonText()} {uploadTotal && `${Math.floor((100/uploadTotal) * uploadProgress - 1)}%`}</button>
           }
           { downloadLink && <button
             className="download"
