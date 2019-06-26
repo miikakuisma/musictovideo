@@ -13,46 +13,21 @@ class Waveform extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      showHelp: true,
-      showDetails: false,
-      duration: null,
-      currentTime: null,
-      currentFrame: null,
       analysing: false,
-      working: false,
-      preparing: false,
+      currentFrame: null,
+      currentTime: null,
       downloadLink: null,
+      duration: null,
+      error: null,
+      preparing: false,
+      showDetails: false,
+      showHelp: true,
       tags: {},
       uploadedAudioFilename: null,
-      error: null,
+      uploadProgress: null,
       uploadTotal: null,
-      uploadProgress: null
+      working: false,
     }
-  }
-
-  readTags(file) {
-    // Read MP3 ID3 tags and set them to state
-    var jsmediatags = require("jsmediatags");
-    jsmediatags.read(file, {
-      onSuccess: (tag) => {
-        this.setState({
-          showDetails: true,
-          tags: tag.tags
-        })
-      },
-      onError: (error) => {
-        this.setState({ tags: 
-          {
-            album: 'Unknown',
-            artist: 'Unknown',
-            title: 'Unknown',
-            genre: 'Unknown',
-            year: 'Unknown',
-          }
-        })
-        console.log(error);
-      }
-    });
   }
 
   componentDidMount() {
@@ -112,6 +87,31 @@ class Waveform extends React.Component {
     }
   }
 
+  readTags(file) {
+    // Read MP3 ID3 tags and set them to state
+    var jsmediatags = require("jsmediatags");
+    jsmediatags.read(file, {
+      onSuccess: (tag) => {
+        this.setState({
+          showDetails: true,
+          tags: tag.tags
+        })
+      },
+      onError: (error) => {
+        this.setState({ tags: 
+          {
+            album: 'Unknown',
+            artist: 'Unknown',
+            title: 'Unknown',
+            genre: 'Unknown',
+            year: 'Unknown',
+          }
+        })
+        console.log(error);
+      }
+    });
+  }
+
   loadSound(file) {
     // Analyse waveform
     this.wavesurfer.loadBlob(file)
@@ -154,10 +154,8 @@ class Waveform extends React.Component {
 
   compressWhenReady(blob) {
     const { title } = this.state.tags
-
     if (this.state.uploadedAudioFilename) {
       clearTimeout(this.waitingTimer)
-      console.log('I have everything, lets compress')
       const timestamp = Date.now()
       const data = new FormData()
       data.append('file', blob, `${timestamp}${this.state.uploadedAudioFilename.replace('.mp3', '')}.webm`)
@@ -167,14 +165,12 @@ class Waveform extends React.Component {
       })
     } else {
       this.waitingTimer = setTimeout(() => {
-        console.log('trying again')
         this.compressWhenReady(blob)
       }, 1000)
     }
   }
 
   async uploadVideo(payload) {
-    console.log('uploading video')
     this.setState({
       working: false,
       preparing: true
@@ -189,7 +185,6 @@ class Waveform extends React.Component {
     }
     await axios.post(APIURL + "uploadRender", payload.blob, config)
     .then(res => {
-      console.log(res)
       this.setState({
         uploadProgress: null,
         uploadTotal: null
@@ -223,7 +218,18 @@ class Waveform extends React.Component {
 
   render() {
     const { format, elements } = this.props
-    const { showHelp, showDetails, duration, working, preparing, downloadLink, analysing, error, uploadTotal, uploadProgress } = this.state
+    const {
+      analysing,
+      downloadLink,
+      duration,
+      error,
+      preparing,
+      showDetails,
+      showHelp,
+      uploadProgress,
+      uploadTotal,
+      working,
+    } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
