@@ -73,11 +73,10 @@ class Waveform extends React.Component {
       data.append('file', acceptedFiles[0])
       axios.post(APIURL + "uploadMusic", data)
       .then(res => {
-        console.log(res)
         if (res.statusText === 'OK') {
           _this.setState({ uploadedAudioFilename: res.data.filename })
         } else {
-          _this.setState({ error: res.data })
+          _this.setState({ error: 'Something went wrong..' })
         }
       })
       .catch(error => {

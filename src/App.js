@@ -1,6 +1,7 @@
 import React from 'react'
 import Waveform from './Waveform'
 import './App.css'
+require('./whammy.js')
 
 const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://dev.moreyes.fi:5000/'
 
