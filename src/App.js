@@ -2,6 +2,8 @@ import React from 'react'
 import Waveform from './Waveform'
 import './App.css'
 
+const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://dev.moreyes.fi:5000/'
+
 const waveStyle = {
   barWidth: 1,
   barGap: 0,
@@ -62,21 +64,25 @@ class App extends React.Component {
     super(props)
     this.state = {
       selectedFormat: 720,
-      data: null
+      data: null,
+      error: null
     }
   }
 
   componentDidMount() {
     this.callBackendAPI()
       .then(res => this.setState({ data: res.express }))
-      .catch(err => console.log(err));
+      .catch(err => {
+        this.setState({ error: 'Could not connect to server' })
+      });
   }
 
   async callBackendAPI () {
-    const response = await fetch('/express_backend');
+    const response = await fetch(APIURL + 'express_backend');
     const body = await response.json();
 
     if (response.status !== 200) {
+      this.setState({ error: 'Could not connect to server' })
       throw Error(body.message) 
     }
     return body;
@@ -88,7 +94,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { selectedFormat } = this.state
+    const { selectedFormat, error } = this.state
 
     // const formatOptions = outputFormats.map((format, index) => <option
     //   key={index}
@@ -100,11 +106,11 @@ class App extends React.Component {
 
     return (
       <div className="appContainer">
-        <Waveform
+        {!error ? <Waveform
           theme={waveStyle}
           format={outputFormats.find(format => format.value === selectedFormat).size}
           elements={elements}
-        />
+        /> : <h1 style={{ color: 'white' }}>{error}</h1> }
         {/*<div className="formatSelector">
           <select
             defaultValue={selectedFormat}

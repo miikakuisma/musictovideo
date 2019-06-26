@@ -7,6 +7,8 @@ var html2canvas = require('html2canvas')
 
 let FPS = 2
 
+const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://dev.moreyes.fi:5000/'
+
 class Waveform extends React.Component {
   constructor(props) {
     super(props)
@@ -19,8 +21,10 @@ class Waveform extends React.Component {
       analysing: false,
       working: false,
       preparing: false,
+      downloadLink: null,
       tags: {},
-      uploadedAudioFilename: null
+      uploadedAudioFilename: null,
+      error: null
     }
   }
 
@@ -81,15 +85,28 @@ class Waveform extends React.Component {
 
   handleDropFile(acceptedFiles) {
     if (acceptedFiles.length > 0) {
+      this.setState({
+        downloadLink: null,
+        uploadedAudioFilename: null
+      })
       const _this = this
       this.setState({ showHelp: false })
       this.loadSound(acceptedFiles[0])
       const data = new FormData() 
       data.append('file', acceptedFiles[0])
-      axios.post("http://localhost:8000/uploadMusic", data)
+      axios.post(APIURL + "uploadMusic", data)
       .then(res => {
-        _this.setState({ uploadedAudioFilename: res.data.filename })
+        console.log(res)
+        if (res.statusText === 'OK') {
+          _this.setState({ uploadedAudioFilename: res.data.filename })
+        } else {
+          _this.setState({ error: res.data })
+        }
       })
+      .catch(error => {
+        console.log(error)
+        _this.setState({ error: 'Could not connect to server..' })
+      });
     }
   }
 
@@ -126,24 +143,40 @@ class Waveform extends React.Component {
 
   mergeFrames() {
     this.setState({ working: true })
-    const { title } = this.state.tags
     const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-    const timestamp = Date.now()
-    const data = new FormData()
-    data.append('file', blob, `${timestamp}${this.state.uploadedAudioFilename.replace('.mp3', '')}.webm`)
-    this.uploadVideo({
-      blob: data,
-      title,
-    })
+    this.compressWhenReady(blob)
+  }
+
+  compressWhenReady(blob) {
+    const { title } = this.state.tags
+
+    if (this.state.uploadedAudioFilename) {
+      clearTimeout(this.waitingTimer)
+      console.log('I have everything, lets compress')
+      const timestamp = Date.now()
+      const data = new FormData()
+      data.append('file', blob, `${timestamp}${this.state.uploadedAudioFilename.replace('.mp3', '')}.webm`)
+      this.uploadVideo({
+        blob: data,
+        title,
+      })
+    } else {
+      this.waitingTimer = setTimeout(() => {
+        console.log('trying again')
+        this.compressWhenReady(blob)
+      }, 1000)
+    }
   }
 
   async uploadVideo(payload) {
+    console.log('uploading video')
     this.setState({
       working: false,
       preparing: true
     })
-    await axios.post("http://localhost:8000/uploadRender", payload.blob)
+    await axios.post(APIURL + "uploadRender", payload.blob)
     .then(res => {
+      console.log(res)
       // Download when all done
       this.downloadVideo(res, payload.title)
     })
@@ -151,17 +184,29 @@ class Waveform extends React.Component {
 
   downloadVideo(res, title) {
     var a = document.createElement('a');
-    a.href = 'http://localhost:8000/download/' + res.data.filename
+    a.href = APIURL + 'download/' + res.data.filename
     a.download = `${title}.mp4`
-    a.click();
+    // a.click();
     this.setState({
       preparing: false,
+      downloadLink: APIURL + 'download/' + res.data.filename
     })
+  }
+
+  getButtonText() {
+    const { working, preparing } = this.state
+    if (working) {
+      return 'Working...'
+    } else if (preparing) {
+      return 'Finalising..'
+    } else {
+      return 'Convert'
+    }
   }
 
   render() {
     const { format, elements } = this.props
-    const { showHelp, showDetails, duration, working, preparing, analysing } = this.state
+    const { showHelp, showDetails, duration, working, preparing, downloadLink, analysing, error } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
 
@@ -194,11 +239,11 @@ class Waveform extends React.Component {
                   <div className="icon reject" />
                   <p>File type not accepted, sorry!</p>
                 </div> }
-                { preparing && <div className="dropzoneInfo withoverlay">
-                  <p>Preparing download</p>
-                </div> }
                 { analysing && <div className="dropzoneInfo">
                   <p>Analysing..</p>
+                </div> }
+                { error && <div className="dropzoneInfo withoverlay">
+                  <p>{error}</p>
                 </div> }
               </div>
             )}
@@ -213,16 +258,23 @@ class Waveform extends React.Component {
           <div className='wave'></div>
         </div>
         <div className="buttons">
-          { length > 1 &&
+          { length > 1 && !error &&
             <button
               className="generate"
               style={{ background: (working || preparing) && 'transparent' }}
               onClick={() => {
-              this.exportFrames()
-            }}>{!working && !preparing ? 'Convert' : 'Working..'}</button>
+                this.exportFrames()
+              }}
+            >{this.getButtonText()}</button>
           }
+          { downloadLink && <button
+            className="download"
+            onClick={() => {
+              window.open(downloadLink)
+            }}
+            >Download Video</button>}
         </div>
-        { showDetails && <div className="editor">
+        { showDetails && !working && !preparing && <div className="editor">
           <div className="item">
             <label>Artist</label>
             <input

@@ -72,7 +72,7 @@
 
 .dropzoneInfo p {
 	position: absolute;
-  bottom: 40px;
+  bottom: 60px;
   left: 0;
   width: 100%;
   font-size: 18px;
@@ -130,6 +130,11 @@ button.play {
 button.generate {
   color: white;
   background: #673ab7;
+}
+
+button.download {
+  color: white;
+  background: green;
 }
 
 .editor {

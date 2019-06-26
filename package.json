@@ -1,6 +1,7 @@
 {
   "name": "musictovideo",
   "version": "0.1.0",
+  "homepage": "http://dev.moreyes.fi/musictovideo/",
   "proxy": "http://localhost:5000/",
   "private": true,
   "dependencies": {
