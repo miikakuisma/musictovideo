@@ -291,10 +291,36 @@ class Waveform extends React.Component {
         >
           <Heading size={500} marginBottom={10}>Select .MP3 file from your computer</Heading>
           <FilePicker
+            accept={'audio/mp3'}
             disabled={working || preparing}
             onChange={this.handleDropFile.bind(this)}
           />
         </Pane> }
+        { showHelp && <Dropzone
+          accept='audio/mp3'
+          onDrop={this.handleDropFile.bind(this)}
+        >
+          {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
+            <div className="dropzoneContainer" {...getRootProps()}>
+              <input {...getInputProps()} />
+              { !isDragActive && <div className="dropzoneInfo">
+                <div className="icon add" />
+                <p>or drop .MP3 file here</p>
+              </div> }
+              { isDragActive && !isDragReject && <div className="dropzoneInfo">
+                <div className="icon check" />
+                <p>Looking good!</p>
+              </div> }
+              { isDragReject && <div className="dropzoneInfo">
+                <div className="icon reject" />
+                <p>File type not accepted, sorry!</p>
+              </div> }
+              { analysing && <div className="dropzoneInfo">
+                <p>Analysing..</p>
+              </div> }
+            </div>
+          )}
+        </Dropzone> }
         { !showHelp && <Pane
           elevation={2}
           display="flex"
@@ -305,7 +331,7 @@ class Waveform extends React.Component {
           backgroundColor="tint1"
           marginBottom={30}
         >
-          <Heading size={500} >Preview of the video</Heading>
+          <Heading size={500} >Preview</Heading>
           <div
             className='waveformContainer'
             style={{
@@ -315,36 +341,6 @@ class Waveform extends React.Component {
             }}
           >
             <Pane>
-              <div className="dropzoneContainer">
-                <Dropzone
-                  accept='audio/mp3'
-                  onDrop={this.handleDropFile.bind(this)}
-                >
-                  {({getRootProps, getInputProps, isDragActive, isDragReject}) => (
-                    <div className="dropzoneContainer" {...getRootProps()}>
-                      <input {...getInputProps()} />
-                      { showHelp && !isDragActive && <div className="dropzoneInfo">
-                        <div className="icon add" />
-                        <p>Drop MP3 file here</p>
-                      </div> }
-                      { isDragActive && !isDragReject && <div className="dropzoneInfo withoverlay">
-                        <div className="icon check" />
-                        <p>Looking good!</p>
-                      </div> }
-                      { isDragReject && <div className="dropzoneInfo withoverlay">
-                        <div className="icon reject" />
-                        <p>File type not accepted, sorry!</p>
-                      </div> }
-                      { analysing && <div className="dropzoneInfo">
-                        <p>Analysing..</p>
-                      </div> }
-                      { error && <div className="dropzoneInfo withoverlay">
-                        <p>{error}</p>
-                      </div> }
-                    </div>
-                  )}
-                </Dropzone>
-              </div>
               <div className="info">
                 { elements.artist && artist && <h2>{artist}</h2> }
                 { elements.title && title && <h1>"{title}"</h1> }
@@ -387,7 +383,6 @@ class Waveform extends React.Component {
               <Spinner />
             </Pane> }
             <Pane
-              width="33%"
               alignItems="center"
               justifyContent="right"
             >

@@ -7,16 +7,17 @@ require('./whammy.js')
 const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://dev.moreyes.fi:5000/'
 
 const waveStyle = {
+  width: 640,
+  height: 100,
   barWidth: 1,
   barGap: 0,
   cursorWidth: 2,
-  backend: 'WebAudio',
-  width: 640,
-  height: 100,
+  pixelRatio: 2,
   progressColor: '#ffc107',
-  responsive: true,
   waveColor: '#fff',
   cursorColor: 'transparent',
+  responsive: true,
+  backend: 'WebAudio',
 }
 
 const outputFormats = [
