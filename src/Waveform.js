@@ -356,7 +356,7 @@ class Waveform extends React.Component {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Pane width="33%">
+            <Pane width="30%">
               <Button
                 appearance="default"
                 intent="none"
@@ -367,13 +367,14 @@ class Waveform extends React.Component {
               <Select
                 disabled
                 marginLeft={10}
+                defaultValue={720}
                 onChange={event => console.log(event.target.value)}
               >
-                <option value="720" selected>720p</option>
+                <option value="720">720p</option>
               </Select>
             </Pane>
             { !downloadLink && (working || preparing) && <Pane
-              width="33%"
+              width="40%"
               display="flex"
               flexDirection="row"
               alignItems="center"
@@ -382,6 +383,7 @@ class Waveform extends React.Component {
               <Spinner />
             </Pane> }
             <Pane
+              width="30%"
               alignItems="center"
               justifyContent="right"
             >
