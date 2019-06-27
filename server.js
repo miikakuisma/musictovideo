@@ -4,6 +4,7 @@ const port = process.env.PORT || 5000;
 var multer = require('multer')
 var cors = require('cors');
 const { exec } = require('child_process');
+var fs = require('fs');
 
 app.use(cors())
 
@@ -49,6 +50,10 @@ app.post('/uploadRender',function(req, res) {
           console.error(`exec error: ${err}`);
           return;
         }
+        // Delete files
+        fs.unlink('temp/' + uploadedFilename + '.mp4')
+        fs.unlink('uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3'))
+        fs.unlink('uploads/' + uploadedFilename)
         // Return with link
         res.status(200).json({ filename: uploadedFilename.slice(13).replace('.webm', '.mp4') })
       });
