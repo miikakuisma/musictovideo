@@ -51,9 +51,15 @@ app.post('/uploadRender',function(req, res) {
           return;
         }
         // Delete files
-        fs.unlink('temp/' + uploadedFilename + '.mp4')
-        fs.unlink('uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3'))
-        fs.unlink('uploads/' + uploadedFilename)
+        fs.unlink('temp/' + uploadedFilename + '.mp4', function() {
+          console.log('deleted file')
+        })
+        fs.unlink('uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3'), function() {
+          console.log('deleted file')
+        })
+        fs.unlink('uploads/' + uploadedFilename, function() {
+          console.log('deleted file')
+        })
         // Return with link
         res.status(200).json({ filename: uploadedFilename.slice(13).replace('.webm', '.mp4') })
       });

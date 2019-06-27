@@ -383,7 +383,7 @@ class Waveform extends React.Component {
               <Spinner />
             </Pane> }
             <Pane
-              width="30%"
+              width="33%"
               alignItems="center"
               justifyContent="right"
             >
