@@ -272,7 +272,7 @@ class Waveform extends React.Component {
     const { album, artist, title, genre, year } = this.state.tags
 
     return (
-      <Pane clearfix>
+      <Pane clearfix style={{ position: 'relative' }}>
         { showHelp && <Heading
           display="flex"
           size={800}
@@ -328,7 +328,6 @@ class Waveform extends React.Component {
           justifyContent="left"
           alignItems="left"
           flexDirection="column"
-          backgroundColor="tint1"
           marginBottom={30}
         >
           <Heading size={500} >Preview</Heading>
@@ -414,15 +413,21 @@ class Waveform extends React.Component {
         </Pane> }
 
         { showEditor && <Pane
-          elevation={1}
+          elevation={0}
           display="flex"
           padding={30}
           width={700}
           justifyContent="left"
           alignItems="left"
           flexDirection="column"
-          backgroundColor="tint1"
+          backgroundColor="#F5F6F7"
           marginBottom={30}
+          style={{
+            position: 'absolute',
+            width: '250px',
+            top: '30px',
+            left: '-251px',
+          }}
         >
           <TextInputField
             label="Artist"
