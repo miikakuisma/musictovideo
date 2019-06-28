@@ -5,7 +5,7 @@ import Waveform from './Waveform'
 import './App.css'
 require('./whammy.js')
 
-const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'https://musictovideo.herokuapp.com:5000/'
+const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://dev.moreyes.fi:5000/'
 
 const waveStyle = {
   width: 640,
