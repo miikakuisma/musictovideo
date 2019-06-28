@@ -1,7 +1,7 @@
 {
   "name": "musictovideo",
   "version": "0.1.0",
-  "homepage": "https://confident-ritchie-5cb896.netlify.com/",
+  "homepage": "http://dev.moreyes.fi/musictovideo/",
   "proxy": "http://localhost:5000/",
   "private": true,
   "dependencies": {
