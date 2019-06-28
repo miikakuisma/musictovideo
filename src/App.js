@@ -1,5 +1,6 @@
 import React from 'react'
-import { Pane } from 'evergreen-ui'
+import { isChromium, isOpera, isChrome } from "react-device-detect";
+import { Pane, Alert } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
 require('./whammy.js')
@@ -106,7 +107,30 @@ class App extends React.Component {
 
     // console.log('selectedFormat', selectedFormat)
     // console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
+    const browserSupported = isChrome || isChromium || isOpera
 
+    // If browser not supported, show alert screen
+    if (!browserSupported) {
+      return (<Pane clearfix>
+        <Pane
+          elevation={1}
+          width={window.innerWidth}
+          height={window.innerHeight}
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          flexDirection="column"
+          backgroundColor="white"
+        >
+        <Alert
+          intent="danger"
+          title="Your browser is not supported. Please use Chrome (or Chromium based) or Opera."
+        />
+        </Pane>
+      </Pane>)
+    }
+
+    // Otherwise start the app
     return (
       <Pane clearfix>
         <Pane

@@ -2,7 +2,7 @@ import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
-import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField } from 'evergreen-ui'
+import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon } from 'evergreen-ui'
 
 import './waveform.css'
 var html2canvas = require('html2canvas')
@@ -304,16 +304,16 @@ class Waveform extends React.Component {
             <div className="dropzoneContainer" {...getRootProps()}>
               <input {...getInputProps()} />
               { !isDragActive && <div className="dropzoneInfo">
-                <div className="icon add" />
+                <Icon icon="add" color="muted" size={64} />
                 <p>or drop .MP3 file here</p>
               </div> }
               { isDragActive && !isDragReject && <div className="dropzoneInfo">
-                <div className="icon check" />
+                <Icon icon="tick-circle" color="success" size={64} />
                 <p>Looking good!</p>
               </div> }
               { isDragReject && <div className="dropzoneInfo">
-                <div className="icon reject" />
-                <p>File type not accepted, sorry!</p>
+                <Icon icon="ban-circle" color="danger" size={64} />
+                <p>Won't eat that, sorry!</p>
               </div> }
               { analysing && <div className="dropzoneInfo">
                 <p>Analysing..</p>
@@ -356,14 +356,14 @@ class Waveform extends React.Component {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Pane width="30%">
+            <Pane width="33%">
               <Button
                 appearance="default"
                 intent="none"
                 iconBefore="cog"
                 disabled={working || preparing}
                 onClick={() => { this.setState({ showEditor: !showEditor })}}
-              >Customize</Button>
+              >Tweak</Button>
               <Select
                 disabled
                 marginLeft={10}
@@ -374,7 +374,7 @@ class Waveform extends React.Component {
               </Select>
             </Pane>
             { !downloadLink && (working || preparing) && <Pane
-              width="40%"
+              width="33%"
               display="flex"
               flexDirection="row"
               alignItems="center"
