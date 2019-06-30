@@ -10,7 +10,7 @@
        "ref"  : "origin/master",
        "repo" : "git@github.com:miikakuisma/musictovideo"
        "path" : "/var/www/html/musictovideo/",
-       "post-deploy" : "npm install; grunt dist"
+       "post-deploy" : "yarn build"
       },
    }
 }
