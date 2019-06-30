@@ -9,7 +9,7 @@ var html2canvas = require('html2canvas')
 
 let FPS = 2
 
-const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://dev.moreyes.fi:5000/'
+const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://142.93.173.43:5000/'
 
 class Waveform extends React.Component {
   constructor(props) {
