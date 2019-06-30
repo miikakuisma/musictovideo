@@ -1,5 +1,5 @@
 import React from 'react'
-import { isChromium, isOpera, isChrome } from "react-device-detect";
+import { isChromium, isOpera, isChrome, isTablet, isMobile } from "react-device-detect";
 import { Pane, Alert } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
@@ -107,7 +107,7 @@ class App extends React.Component {
 
     // console.log('selectedFormat', selectedFormat)
     // console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
-    const browserSupported = isChrome || isChromium || isOpera
+    const browserSupported = (isChrome || isChromium || isOpera) && (!isTablet || !isMobile)
 
     // If browser not supported, show alert screen
     if (!browserSupported) {
