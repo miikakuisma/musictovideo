@@ -124,7 +124,7 @@ class App extends React.Component {
         >
         <Alert
           intent="danger"
-          title="Your browser is not supported. Please use Chrome (or Chromium based) or Opera."
+          title="Your browser is not supported. Please use desktop Chrome (or Chromium based) or Opera browser. We will soon support other browsers too."
         />
         </Pane>
       </Pane>)
