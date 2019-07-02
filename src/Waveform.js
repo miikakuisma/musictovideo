@@ -2,6 +2,7 @@ import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
+import { SwatchesPicker } from 'react-color';
 import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon } from 'evergreen-ui'
 
 import './waveform.css'
@@ -29,6 +30,12 @@ class Waveform extends React.Component {
       uploadProgress: null,
       uploadTotal: null,
       working: false,
+      theme: {
+        colorTop: '#000333',
+        colorBottom: '#3f4c6b'
+      },
+      showTopColorPicker: false,
+      showBottomColorPicker: false
     }
   }
 
@@ -267,6 +274,9 @@ class Waveform extends React.Component {
       showEditor,
       showHelp,
       working,
+      theme,
+      showTopColorPicker,
+      showBottomColorPicker
     } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title, genre, year } = this.state.tags
@@ -336,7 +346,7 @@ class Waveform extends React.Component {
             style={{
               width: `${format.width/2}px`,
               height: `${format.height/2}px`,
-              background: showHelp ? '#333' : 'linear-gradient(to bottom, #000333 0%,#3f4c6b 100%)'
+              background: showHelp ? '#333' : `linear-gradient(to bottom, ${theme.colorTop} 0%,${theme.colorBottom} 100%)`
             }}
           >
             <Pane>
@@ -418,7 +428,81 @@ class Waveform extends React.Component {
           elevation={0}
           display="flex"
           padding={30}
-          width={700}
+          width={250}
+          justifyContent="left"
+          alignItems="left"
+          flexDirection="column"
+          backgroundColor="#F5F6F7"
+          marginBottom={30}
+          style={{
+            position: 'absolute',
+            width: '250px',
+            top: '30px',
+            right: '-251px',
+          }}
+        >
+          <Heading size={500}>Top Color</Heading>
+          <div
+            style={{
+              width: '40px',
+              height: '24px',
+              backgroundColor: this.state.theme.colorBottom,
+              border: '1px solid white'
+            }}
+            onClick={() => {
+              this.setState({ showTopColorPicker: !showTopColorPicker })
+            }}
+          />
+          { showTopColorPicker && <SwatchesPicker
+            color={theme.colorTop}
+            onChangeComplete={(color) => {
+              this.setState({ theme: {...this.state.theme, colorTop: color.hex} })
+            }}
+          /> }
+        </Pane> }
+
+        { showEditor && <Pane
+          elevation={0}
+          display="flex"
+          padding={30}
+          width={250}
+          justifyContent="left"
+          alignItems="left"
+          flexDirection="column"
+          backgroundColor="#F5F6F7"
+          marginBottom={30}
+          style={{
+            position: 'absolute',
+            width: '250px',
+            top: '335px',
+            right: '-251px',
+          }}
+        >
+          <Heading size={500}>Bottom Color</Heading>
+          <div
+            style={{
+              width: '40px',
+              height: '24px',
+              backgroundColor: theme.colorBottom,
+              border: '1px solid white'
+            }}
+            onClick={() => {
+              this.setState({ showBottomColorPicker: !showBottomColorPicker })
+            }}
+          />
+          { showBottomColorPicker && <SwatchesPicker
+            color={theme.colorBottom}
+            onChangeComplete={(color) => {
+              this.setState({ theme: {...this.state.theme, colorBottom: color.hex} })
+            }}
+          /> }
+        </Pane> }
+
+        { showEditor && <Pane
+          elevation={0}
+          display="flex"
+          padding={30}
+          width={250}
           justifyContent="left"
           alignItems="left"
           flexDirection="column"
