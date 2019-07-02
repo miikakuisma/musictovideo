@@ -436,19 +436,17 @@ class Waveform extends React.Component {
           marginBottom={30}
           style={{
             position: 'absolute',
-            width: '250px',
-            top: '30px',
-            right: '-251px',
+            width: '160px',
+            top: '45px',
+            right: '-161px',
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
           <Heading size={500}>Top Color</Heading>
           <div
-            style={{
-              width: '40px',
-              height: '24px',
-              backgroundColor: this.state.theme.colorBottom,
-              border: '1px solid white'
-            }}
+            className='colorPickerToggle'
+            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
             onClick={() => {
               this.setState({ showTopColorPicker: !showTopColorPicker })
             }}
@@ -473,19 +471,17 @@ class Waveform extends React.Component {
           marginBottom={30}
           style={{
             position: 'absolute',
-            width: '250px',
+            width: '160px',
             top: '335px',
-            right: '-251px',
+            right: '-161px',
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
           <Heading size={500}>Bottom Color</Heading>
           <div
-            style={{
-              width: '40px',
-              height: '24px',
-              backgroundColor: theme.colorBottom,
-              border: '1px solid white'
-            }}
+            className='colorPickerToggle'
+            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
             onClick={() => {
               this.setState({ showBottomColorPicker: !showBottomColorPicker })
             }}
