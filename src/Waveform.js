@@ -39,37 +39,6 @@ class Waveform extends React.Component {
     }
   }
 
-  componentDidMount() {
-    return
-    this.wavesurfer = WaveSurfer.create({
-      container: document.querySelector('.waveform'),
-      ...this.props.theme
-    })
-    this.wavesurfer.on('loading', () => {
-      this.setState({ analysing: true })
-    })
-    this.wavesurfer.on('ready', () => {
-      this.setState({
-        analysing: false,
-        duration: this.wavesurfer.getDuration(),
-        currentFrame: 0,
-      })
-    })
-    this.wavesurfer.on('play', () => {
-      // console.log('playback started')
-    })
-    this.wavesurfer.on('audioprocess', (e) => {
-      // console.log('on audioprocess', e)
-    })
-    this.wavesurfer.on('finish', () => {
-      // console.log('playback finished')
-    })
-    // this.wavesurfer.playPause()
-    // .exportImage(format, quality)
-    // .seekTo(progress) – Seeks to a progress [0..1] (0 = beginning, 1 = end).
-    // .loadBlob(url) – Loads audio from a Blob or File object.
-  }
-
   handleDropFile(acceptedFiles) {
     if (acceptedFiles.length > 0) {
       this.setState({
