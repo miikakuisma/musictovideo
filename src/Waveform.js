@@ -219,8 +219,9 @@ class Waveform extends React.Component {
     })
     // Trigger IFTTT webhooks
     axios.post('https://maker.ifttt.com/trigger/newmusictovideo/with/key/bYoV10h_oGb3qYWMNcRwYl', {
-      value1: APIURL + 'download/' + res.data.filename
+      "value1": `${APIURL}download/${res.data.filename}`
     })
+    console.log(`${APIURL}download/${res.data.filename}`)
     console.log(this.state.downloadLink)
   }
 
