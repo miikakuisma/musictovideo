@@ -60,7 +60,8 @@ const elements = {
   artist: true,
   album: true,
   title: true,
-  genre: true
+  genre: false,
+  year: false
 }
 
 class App extends React.Component {

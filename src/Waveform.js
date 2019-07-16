@@ -3,7 +3,7 @@ import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
 import { SwatchesPicker } from 'react-color';
-import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon } from 'evergreen-ui'
+import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon, Switch } from 'evergreen-ui'
 
 import './waveform.css'
 var html2canvas = require('html2canvas')
@@ -23,8 +23,10 @@ class Waveform extends React.Component {
       duration: null,
       error: null,
       preparing: false,
+      showCover: true,
       showEditor: false,
       showHelp: true,
+      coverImage: null,
       tags: {},
       uploadedAudioFilename: null,
       uploadProgress: null,
@@ -237,14 +239,27 @@ class Waveform extends React.Component {
     }
   }
 
+  handleDropCover(e) {
+    var reader = new FileReader()
+    const _this = this
+    reader.onload = function (event) {
+      _this.setState({ coverImage: event.target.result })
+    }
+    if (e.target.files.length > 0) {
+      reader.readAsDataURL(e.target.files[0])
+    }
+  }
+
   render() {
     const { format, elements } = this.props
     const {
       analysing,
       downloadLink,
       duration,
+      coverImage,
       error,
       preparing,
+      showCover,
       showEditor,
       showHelp,
       working,
@@ -324,10 +339,19 @@ class Waveform extends React.Component {
             }}
           >
             <Pane>
-              <div className="info">
+              { showCover && <div className="cover" style={{ backgroundImage: `url(${coverImage})` }}>
+                <input
+                  type="file"
+                  style={{
+                    opacity: coverImage ? '0' : '1'
+                  }}
+                  onChange={this.handleDropCover.bind(this)}
+                />
+              </div> }
+              <div className={showCover ? "info withCover" : "info"}>           
                 { elements.artist && artist && <h2>{artist}</h2> }
                 { elements.title && title && <h1>"{title}"</h1> }
-                <p>{ elements.album && album } { elements.genre && genre} { year && year }</p>
+                <p>{ elements.album && album } { elements.genre && genre} { elements.year && year }</p>
               </div>
               <div className='waveform'>
                 <div className='wave'></div>
@@ -342,12 +366,12 @@ class Waveform extends React.Component {
           >
             <Pane width="33%">
               <Button
-                appearance="default"
+                appearance={showEditor ? "default" : "primary"}
                 intent="none"
                 iconBefore="cog"
                 disabled={working || preparing}
                 onClick={() => { this.setState({ showEditor: !showEditor })}}
-              >Tweak</Button>
+              >Options</Button>
               <Select
                 disabled
                 marginLeft={10}
@@ -506,7 +530,17 @@ class Waveform extends React.Component {
               this.setState({ tags: {...this.state.tags, album: e.target.value} })
             }}
           />
-          <TextInputField
+          <Pane>
+            <Heading size={400}>Cover image</Heading>
+            <Switch
+              height={24}
+              checked={showCover}
+              onChange={() => {
+                this.setState({ showCover: !showCover })
+              }}
+            />
+          </Pane>
+          {/*<TextInputField
             label="Genre"
             defaultValue={genre}
             onChange={(e) => {
@@ -519,7 +553,7 @@ class Waveform extends React.Component {
             onChange={(e) => {
               this.setState({ tags: {...this.state.tags, year: e.target.value} })
             }}
-          />
+          />*/}
         </Pane> } 
       </Pane>
     )
