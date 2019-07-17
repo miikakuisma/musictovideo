@@ -91,19 +91,19 @@ app.post('/uploadFrames',function(req, res) {
 
 app.post('/mergeFrames', function(req, res) {
   // convert images to mp4 video
-  exec('ffmpeg -framerate 2 -pattern_type glob -i "uploads/'+req.query.timestamp+'*.png" -c:v libx264 -r 30 -pix_fmt yuv420p temp/out.mp4', (err, stdout, stderr) => {
+  exec('ffmpeg -framerate ' + req.query.fps + ' -pattern_type glob -i "uploads/'+req.query.timestamp+'*.png" -c:v libx264 -s:v 1280x720 -profile:v high -crf 20 -pix_fmt yuv420p -y temp/'+req.query.timestamp+'.mp4', (err, stdout, stderr) => {
     if (err) {
       console.error(`exec error: ${err}`);
       return;
     }
     // Then attach the uploaded audio track
-    exec('ffmpeg -i temp/out.mp4 -i uploads/' + req.query.audiofile + ' -y downloads/' + req.query.audiofile.replace('.mp3', '.mp4'), (err, stdout, stderr) => {
+    exec('ffmpeg -i temp/'+req.query.timestamp+'.mp4 -i uploads/' + req.query.audiofile + ' -y downloads/' + req.query.audiofile.replace('.mp3', '.mp4'), (err, stdout, stderr) => {
       if (err) {
         console.error(`exec error: ${err}`);
         return;
       }
       // Delete files
-      fs.unlink('temp/out.mp4', function() {
+      fs.unlink('temp/'+req.query.timestamp+'.mp4', function() {
         // console.log('deleted temp mp4')
       })
       fs.readdir('uploads/', (err, files)=>{

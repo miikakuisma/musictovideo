@@ -150,7 +150,11 @@ class Waveform extends React.Component {
       if (this.frame <= (this.state.duration * FPS)) {
         const nextFrame = 1/(this.state.duration * FPS) * this.frame
         this.wavesurfer.seekTo(nextFrame)
-        domtoimage.toPng(document.querySelector(".waveformContainer"))
+        domtoimage.toPng(document.querySelector(".waveformContainer"), {
+          quality: 1,
+          width: 1280,
+          height: 720
+        })
           .then((dataUrl) => {
             this.exportedImages.push(dataUrl)
             this.setState({
@@ -171,6 +175,9 @@ class Waveform extends React.Component {
     this.setState({
       working: false,
       preparing: true
+    })
+    toaster.success('Almost done!', {
+      description: 'Adding finishing touch...'
     })
     const timestamp = Date.now()
     this.exportedImages.forEach(async (image, index) => {
@@ -258,6 +265,7 @@ class Waveform extends React.Component {
     const {
       analysing,
       downloadLink,
+      currentFrame,
       duration,
       coverImage,
       error,
@@ -323,6 +331,19 @@ class Waveform extends React.Component {
             </div>
           )}
         </Dropzone> }
+        { working && <div className='curtain'>
+          <Pane
+            display="flex"
+            padding={30}
+            justifyContent="center"
+            alignItems="center"
+            flexDirection="column"
+          >
+            <Spinner />
+            <br/>
+            <span>{Math.floor((100/Math.floor(duration * FPS)) * currentFrame)}%</span>
+          </Pane>
+        </div> }
         { !showHelp && <Pane
           elevation={2}
           display="flex"
@@ -338,6 +359,7 @@ class Waveform extends React.Component {
             style={{
               width: `${format.width}px`,
               height: `${format.height}px`,
+              zoom: working ? '1' : '0.5',
               background: showHelp ? '#333' : `linear-gradient(to bottom, ${theme.colorTop} 0%,${theme.colorBottom} 100%)`
             }}
           >
@@ -351,7 +373,7 @@ class Waveform extends React.Component {
                   onChange={this.handleDropCover.bind(this)}
                 />
               </div> }
-              <div className={showCover ? "info withCover" : "info"}>           
+              <div className="info">           
                 { elements.artist && artist && <h2>{artist}</h2> }
                 { elements.title && title && <h1>"{title}"</h1> }
                 <p>{ elements.album && album } { elements.genre && genre} { elements.year && year }</p>
