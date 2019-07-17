@@ -2,7 +2,8 @@ import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
-import { SwatchesPicker } from 'react-color';
+import domtoimage from 'dom-to-image'
+import { SwatchesPicker } from 'react-color'
 import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon, Switch } from 'evergreen-ui'
 
 import './waveform.css'
@@ -139,13 +140,24 @@ class Waveform extends React.Component {
       if (this.frame <= (this.state.duration * FPS)) {
         const nextFrame = 1/(this.state.duration * FPS) * this.frame
         this.wavesurfer.seekTo(nextFrame)
-        html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
-          this.exportedImages.push(canvas.toDataURL("image/webp"))
-          this.setState({
-            currentFrame: this.frame + 1,
+        domtoimage.toPng(document.querySelector(".waveformContainer"))
+          .then((dataUrl) => {
+            this.exportedImages.push(dataUrl)
+            this.setState({
+              currentFrame: this.frame + 1,
+            })
+            this.frame++
           })
-          this.frame++
-        })
+
+        // html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
+        //   this.exportedImages.push(canvas.toDataURL("image/webp"))
+        //   this.setState({
+        //     currentFrame: this.frame + 1,
+        //   })
+        //   this.frame++
+        // })
+
+
       } else {
         clearInterval(this.exportTimer)
         this.setState({ working: false })
