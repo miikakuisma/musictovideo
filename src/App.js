@@ -107,7 +107,7 @@ class App extends React.Component {
 
     // console.log('selectedFormat', selectedFormat)
     // console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
-    const browserSupported = (isChrome || isChromium || isOpera) && (!isTablet || !isMobile)
+    const browserSupported = true // (isChrome || isChromium || isOpera) && (!isTablet || !isMobile)
 
     // If browser not supported, show alert screen
     if (!browserSupported) {
