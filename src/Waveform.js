@@ -129,6 +129,18 @@ class Waveform extends React.Component {
     this.readTags(file)
   }
 
+  dataURLtoFile(dataurl, filename) {
+    let arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+  }
+
   exportFrames() {
     this.setState({
       working: true,
@@ -148,16 +160,6 @@ class Waveform extends React.Component {
             })
             this.frame++
           })
-
-        // html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
-        //   this.exportedImages.push(canvas.toDataURL("image/webp"))
-        //   this.setState({
-        //     currentFrame: this.frame + 1,
-        //   })
-        //   this.frame++
-        // })
-
-
       } else {
         clearInterval(this.exportTimer)
         this.setState({ working: false })
@@ -169,8 +171,16 @@ class Waveform extends React.Component {
 
   mergeFrames() {
     this.setState({ working: true })
-    const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-    this.compressWhenReady(blob)
+    const timestamp = Date.now()
+    this.exportedImages.forEach(async (image, index) => {
+      const filename = timestamp + '-frame' + index + '.png'
+      var blob = this.dataURLtoFile(image, filename)            
+      var formData = new FormData();
+      formData.append('file', blob, filename);
+      await axios.post(APIURL + "uploadMusic", formData)
+    })
+    // const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
+    // this.compressWhenReady(blob)
   }
 
   compressWhenReady(blob) {
