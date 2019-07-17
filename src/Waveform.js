@@ -28,7 +28,6 @@ class Waveform extends React.Component {
       coverImage: null,
       tags: {},
       uploadedAudioFilename: null,
-      uploadedFrames: null,
       uploadProgress: null,
       uploadTotal: null,
       working: false,
@@ -170,8 +169,8 @@ class Waveform extends React.Component {
 
   async mergeFrames() {
     this.setState({
-      working: true,
-      uploadedFrames: 0
+      working: false,
+      preparing: true
     })
     const timestamp = Date.now()
     this.exportedImages.forEach(async (image, index) => {
@@ -179,72 +178,39 @@ class Waveform extends React.Component {
       var blob = this.dataURLtoFile(image, filename)            
       var formData = new FormData();
       formData.append('file', blob, filename);
-      await axios.post(APIURL + "uploadFrames", formData).then((response) => {
-        // console.log(response)
-        this.setState({ uploadedFrames: this.state.uploadedFrames++ })
-      })
+      await axios.post(APIURL + "uploadFrames", formData)
     })
     await axios({
       url: APIURL + "mergeFrames",
       method: 'post',
       params: {
+        fps: FPS,
         timestamp,
+        audiofile: this.state.uploadedAudioFilename,
         frames: this.exportedImages.length
       }
     }).then((response) => {
-      console.log('download video!', response)
+      this.compressWhenReady(response)
     })
-    // const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-    // this.compressWhenReady(blob)
   }
 
-  compressWhenReady(blob) {
+  compressWhenReady(response) {
     const { title } = this.state.tags
     if (this.state.uploadedAudioFilename) {
       clearTimeout(this.waitingTimer)
-      const timestamp = Date.now()
-      const data = new FormData()
-      data.append('file', blob, `${timestamp}${this.state.uploadedAudioFilename.replace('.mp3', '')}.webm`)
-      this.uploadVideo({
-        blob: data,
-        title,
+      toaster.success('Your video has been created!', {
+        description: 'Download button should appear about right now'
       })
+      // Download when all done
+      this.downloadVideo(response, title)
     } else {
       toaster.warning('We are still waiting for your file to get fully uploaded.', {
         description: 'We will finish making your video once it has been uploaded.'
       })
       this.waitingTimer = setTimeout(() => {
-        this.compressWhenReady(blob)
+        this.compressWhenReady(response)
       }, 1000)
     }
-  }
-
-  async uploadVideo(payload) {
-    this.setState({
-      working: false,
-      preparing: true
-    })
-    const config = {
-      onUploadProgress: (progressEvent) => {
-        this.setState({
-          uploadProgress: progressEvent.loaded,
-          uploadTotal: progressEvent.total
-        })
-      }
-    }
-    toaster.notify('Getting ready for final magic')
-    await axios.post(APIURL + "uploadRender", payload.blob, config)
-    .then(res => {
-      this.setState({
-        uploadProgress: null,
-        uploadTotal: null
-      })
-      toaster.success('Your video has been created!', {
-        description: 'Download button should appear about right now'
-      })
-      // Download when all done
-      this.downloadVideo(res, payload.title)
-    })
   }
 
   downloadVideo(res, title) {
@@ -267,9 +233,9 @@ class Waveform extends React.Component {
   getButtonText() {
     const { working, preparing, uploadTotal, uploadProgress } = this.state
     if (working) {
-      return 'Creating...'
+      return 'Rendering...'
     } else if (preparing) {
-      return `Compressing ${Math.floor((100/uploadTotal) * uploadProgress - 1)}%`
+      return `Compressing...` // ${Math.floor((100/uploadTotal) * uploadProgress - 1)}%
     }
     else {
       return 'Now Make it!'
@@ -370,8 +336,8 @@ class Waveform extends React.Component {
           <div
             className='waveformContainer'
             style={{
-              width: `${format.width/2}px`,
-              height: `${format.height/2}px`,
+              width: `${format.width}px`,
+              height: `${format.height}px`,
               background: showHelp ? '#333' : `linear-gradient(to bottom, ${theme.colorTop} 0%,${theme.colorBottom} 100%)`
             }}
           >

@@ -90,37 +90,37 @@ app.post('/uploadFrames',function(req, res) {
 });
 
 app.post('/mergeFrames', function(req, res) {
-  console.log('now mergeFrames')
-  console.log(req.query.timestamp, req.query.frames)
-
   // convert images to mp4 video
-
-  
-
-  exec('ffmpeg -framerate 2 -pattern_type glob -i "uploads/'+req.query.timestamp+'*.png" -c:v libx264 -r 30 -pix_fmt yuv420p -y temp/out.mp4', (err, stdout, stderr) => {
+  exec('ffmpeg -framerate 2 -pattern_type glob -i "uploads/'+req.query.timestamp+'*.png" -c:v libx264 -r 30 -pix_fmt yuv420p temp/out.mp4', (err, stdout, stderr) => {
     if (err) {
       console.error(`exec error: ${err}`);
       return;
     }
-    // // Then attach the uploaded audio track
-    // exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3') + ' -y downloads/' + uploadedFilename.slice(13).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
-    //   if (err) {
-    //     console.error(`exec error: ${err}`);
-    //     return;
-    //   }
-    //   // Delete files
-    //   fs.unlink('temp/' + uploadedFilename + '.mp4', function() {
-    //     console.log('deleted file')
-    //   })
-    //   fs.unlink('uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3'), function() {
-    //     console.log('deleted file')
-    //   })
-    //   fs.unlink('uploads/' + uploadedFilename, function() {
-    //     console.log('deleted file')
-    //   })
-    //   // Return with link
-    //   res.status(200).json({ filename: uploadedFilename.slice(13).replace('.webm', '.mp4') })
-    // });
+    // Then attach the uploaded audio track
+    exec('ffmpeg -i temp/out.mp4 -i uploads/' + req.query.audiofile + ' -y downloads/' + req.query.audiofile.replace('.mp3', '.mp4'), (err, stdout, stderr) => {
+      if (err) {
+        console.error(`exec error: ${err}`);
+        return;
+      }
+      // Delete files
+      fs.unlink('temp/out.mp4', function() {
+        // console.log('deleted temp mp4')
+      })
+      fs.readdir('uploads/', (err, files)=>{
+        for (var i = 0, len = files.length; i < len; i++) {
+          if (files[i].includes(req.query.timestamp)) {
+            fs.unlink('uploads/' + files[i], function() {
+              // console.log('deleted frame')
+            })
+          }
+       }
+      });
+      fs.unlink('uploads/' + req.query.audiofile, function() {
+        // console.log('deleted audio file')
+      })
+      // Return with link
+      res.status(200).json({ filename: req.query.audiofile.replace('mp3', 'mp4') })
+    });
   });
 
   // upload(req, res, function (err) {

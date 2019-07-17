@@ -3,13 +3,12 @@ import { isChromium, isOpera, isChrome, isTablet, isMobile } from "react-device-
 import { Pane, Alert } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
-require('./whammy.js')
 
 const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://142.93.173.43:5000/'
 
 const waveStyle = {
-  width: 640,
-  height: 100,
+  width: 1280,
+  height: 360,
   barWidth: 1,
   barGap: 0,
   cursorWidth: 2,
