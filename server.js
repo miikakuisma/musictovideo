@@ -78,6 +78,87 @@ app.post('/uploadMusic',function(req, res) {
   })
 });
 
+app.post('/uploadFrames',function(req, res) {
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json(err)
+    } else if (err) {
+      return res.status(500).json(err)
+    }
+    return res.status(200).json({ filename: req.file && req.file.filename })
+  })
+});
+
+app.post('/mergeFrames', function(req, res) {
+  // convert images to mp4 video
+  exec('ffmpeg -framerate ' + req.query.fps + ' -pattern_type glob -i "uploads/'+req.query.timestamp+'*.png" -c:v libx264 -s:v 1280x720 -profile:v high -crf 20 -pix_fmt yuv420p -y temp/'+req.query.timestamp+'.mp4', (err, stdout, stderr) => {
+    if (err) {
+      console.error(`exec error: ${err}`);
+      return;
+    }
+    // Then attach the uploaded audio track
+    exec('ffmpeg -i temp/'+req.query.timestamp+'.mp4 -i uploads/' + req.query.audiofile + ' -y downloads/' + req.query.audiofile.replace('.mp3', '.mp4'), (err, stdout, stderr) => {
+      if (err) {
+        console.error(`exec error: ${err}`);
+        return;
+      }
+      // Delete files
+      fs.unlink('temp/'+req.query.timestamp+'.mp4', function() {
+        // console.log('deleted temp mp4')
+      })
+      fs.readdir('uploads/', (err, files)=>{
+        for (var i = 0, len = files.length; i < len; i++) {
+          if (files[i].includes(req.query.timestamp)) {
+            fs.unlink('uploads/' + files[i], function() {
+              // console.log('deleted frame')
+            })
+          }
+       }
+      });
+      fs.unlink('uploads/' + req.query.audiofile, function() {
+        // console.log('deleted audio file')
+      })
+      // Return with link
+      res.status(200).json({ filename: req.query.audiofile.replace('mp3', 'mp4') })
+    });
+  });
+
+  // upload(req, res, function (err) {
+  //   if (err instanceof multer.MulterError) {
+  //     return res.status(500).json(err)
+  //   } else if (err) {
+  //     return res.status(500).json(err)
+  //   }
+  //   const uploadedFilename = (req.file && req.file.filename)
+  //   // Convert webm to mp4
+  //   exec('ffmpeg -i "uploads/' + uploadedFilename + '" -qscale 0 -y "temp/' + uploadedFilename + '.mp4"', (err, stdout, stderr) => {
+  //     if (err) {
+  //       console.error(`exec error: ${err}`);
+  //       return;
+  //     }
+  //     // Then attach the uploaded audio track
+  //     exec('ffmpeg -i temp/' + uploadedFilename + '.mp4 -i uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3') + ' -y downloads/' + uploadedFilename.slice(13).replace('.webm', '') + '.mp4', (err, stdout, stderr) => {
+  //       if (err) {
+  //         console.error(`exec error: ${err}`);
+  //         return;
+  //       }
+  //       // Delete files
+  //       fs.unlink('temp/' + uploadedFilename + '.mp4', function() {
+  //         console.log('deleted file')
+  //       })
+  //       fs.unlink('uploads/' + uploadedFilename.slice(13).replace('.webm', '.mp3'), function() {
+  //         console.log('deleted file')
+  //       })
+  //       fs.unlink('uploads/' + uploadedFilename, function() {
+  //         console.log('deleted file')
+  //       })
+  //       // Return with link
+  //       res.status(200).json({ filename: uploadedFilename.slice(13).replace('.webm', '.mp4') })
+  //     });
+  //   });
+  // })
+});
+
 app.listen(port, function() {
   console.log(`App running on port ${port}`);
 });

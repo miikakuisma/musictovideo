@@ -2,11 +2,10 @@ import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
-import { SwatchesPicker } from 'react-color';
+import domtoimage from 'dom-to-image'
+import { SwatchesPicker } from 'react-color'
 import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon, Switch } from 'evergreen-ui'
-
 import './waveform.css'
-var html2canvas = require('html2canvas')
 
 let FPS = 2
 
@@ -23,7 +22,7 @@ class Waveform extends React.Component {
       duration: null,
       error: null,
       preparing: false,
-      showCover: true,
+      showCover: false,
       showEditor: false,
       showHelp: true,
       coverImage: null,
@@ -128,7 +127,19 @@ class Waveform extends React.Component {
     this.readTags(file)
   }
 
-  exportFrames() {
+  dataURLtoFile(dataurl, filename) {
+    let arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+  }
+
+  async exportFrames() {
     this.setState({
       working: true,
       showEditor: false,
@@ -139,13 +150,18 @@ class Waveform extends React.Component {
       if (this.frame <= (this.state.duration * FPS)) {
         const nextFrame = 1/(this.state.duration * FPS) * this.frame
         this.wavesurfer.seekTo(nextFrame)
-        html2canvas(document.querySelector(".waveformContainer")).then((canvas) => {
-          this.exportedImages.push(canvas.toDataURL("image/webp"))
-          this.setState({
-            currentFrame: this.frame + 1,
-          })
-          this.frame++
+        domtoimage.toPng(document.querySelector(".waveformContainer"), {
+          quality: 1,
+          width: 1280,
+          height: 720
         })
+          .then((dataUrl) => {
+            this.exportedImages.push(dataUrl)
+            this.setState({
+              currentFrame: this.frame + 1,
+            })
+            this.frame++
+          })
       } else {
         clearInterval(this.exportTimer)
         this.setState({ working: false })
@@ -155,59 +171,53 @@ class Waveform extends React.Component {
     })
   }
 
-  mergeFrames() {
-    this.setState({ working: true })
-    const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
-    this.compressWhenReady(blob)
+  async mergeFrames() {
+    this.setState({
+      working: false,
+      preparing: true
+    })
+    toaster.success('Almost done!', {
+      description: 'Adding finishing touch...'
+    })
+    const timestamp = Date.now()
+    this.exportedImages.forEach(async (image, index) => {
+      const filename = timestamp + '-frame' + (1000 + index) + '.png'
+      var blob = this.dataURLtoFile(image, filename)            
+      var formData = new FormData();
+      formData.append('file', blob, filename);
+      await axios.post(APIURL + "uploadFrames", formData)
+    })
+    await axios({
+      url: APIURL + "mergeFrames",
+      method: 'post',
+      params: {
+        fps: FPS,
+        timestamp,
+        audiofile: this.state.uploadedAudioFilename,
+        frames: this.exportedImages.length
+      }
+    }).then((response) => {
+      this.compressWhenReady(response)
+    })
   }
 
-  compressWhenReady(blob) {
+  compressWhenReady(response) {
     const { title } = this.state.tags
     if (this.state.uploadedAudioFilename) {
       clearTimeout(this.waitingTimer)
-      const timestamp = Date.now()
-      const data = new FormData()
-      data.append('file', blob, `${timestamp}${this.state.uploadedAudioFilename.replace('.mp3', '')}.webm`)
-      this.uploadVideo({
-        blob: data,
-        title,
+      toaster.success('Your video has been created!', {
+        description: 'Download button should appear about right now'
       })
+      // Download when all done
+      this.downloadVideo(response, title)
     } else {
       toaster.warning('We are still waiting for your file to get fully uploaded.', {
         description: 'We will finish making your video once it has been uploaded.'
       })
       this.waitingTimer = setTimeout(() => {
-        this.compressWhenReady(blob)
+        this.compressWhenReady(response)
       }, 1000)
     }
-  }
-
-  async uploadVideo(payload) {
-    this.setState({
-      working: false,
-      preparing: true
-    })
-    const config = {
-      onUploadProgress: (progressEvent) => {
-        this.setState({
-          uploadProgress: progressEvent.loaded,
-          uploadTotal: progressEvent.total
-        })
-      }
-    }
-    toaster.notify('Getting ready for final magic')
-    await axios.post(APIURL + "uploadRender", payload.blob, config)
-    .then(res => {
-      this.setState({
-        uploadProgress: null,
-        uploadTotal: null
-      })
-      toaster.success('Your video has been created!', {
-        description: 'Download button should appear about right now'
-      })
-      // Download when all done
-      this.downloadVideo(res, payload.title)
-    })
   }
 
   downloadVideo(res, title) {
@@ -230,9 +240,9 @@ class Waveform extends React.Component {
   getButtonText() {
     const { working, preparing, uploadTotal, uploadProgress } = this.state
     if (working) {
-      return 'Creating...'
+      return 'Rendering...'
     } else if (preparing) {
-      return `Compressing ${Math.floor((100/uploadTotal) * uploadProgress - 1)}%`
+      return `Compressing...` // ${Math.floor((100/uploadTotal) * uploadProgress - 1)}%
     }
     else {
       return 'Now Make it!'
@@ -255,6 +265,7 @@ class Waveform extends React.Component {
     const {
       analysing,
       downloadLink,
+      currentFrame,
       duration,
       coverImage,
       error,
@@ -320,6 +331,19 @@ class Waveform extends React.Component {
             </div>
           )}
         </Dropzone> }
+        { working && <div className='curtain'>
+          <Pane
+            display="flex"
+            padding={30}
+            justifyContent="center"
+            alignItems="center"
+            flexDirection="column"
+          >
+            <Spinner />
+            <br/>
+            <span>{Math.floor((100/Math.floor(duration * FPS)) * currentFrame)}%</span>
+          </Pane>
+        </div> }
         { !showHelp && <Pane
           elevation={2}
           display="flex"
@@ -333,8 +357,9 @@ class Waveform extends React.Component {
           <div
             className='waveformContainer'
             style={{
-              width: `${format.width/2}px`,
-              height: `${format.height/2}px`,
+              width: `${format.width}px`,
+              height: `${format.height}px`,
+              zoom: working ? '1' : '0.5',
               background: showHelp ? '#333' : `linear-gradient(to bottom, ${theme.colorTop} 0%,${theme.colorBottom} 100%)`
             }}
           >
@@ -348,7 +373,7 @@ class Waveform extends React.Component {
                   onChange={this.handleDropCover.bind(this)}
                 />
               </div> }
-              <div className={showCover ? "info withCover" : "info"}>           
+              <div className="info">           
                 { elements.artist && artist && <h2>{artist}</h2> }
                 { elements.title && title && <h1>"{title}"</h1> }
                 <p>{ elements.album && album } { elements.genre && genre} { elements.year && year }</p>
