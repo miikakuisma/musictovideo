@@ -341,6 +341,7 @@ class Waveform extends React.Component {
           >
             <Spinner />
             <br/>
+            <span>Creating your video</span><br/>
             <span>{Math.floor((100/Math.floor(duration * FPS)) * currentFrame)}%</span>
           </Pane>
         </div> }
@@ -352,6 +353,9 @@ class Waveform extends React.Component {
           alignItems="left"
           flexDirection="column"
           marginBottom={30}
+          style={{
+            boxShadow: working && 'none'
+          }}
         >
           <Heading size={500} >Preview</Heading>
           <div
