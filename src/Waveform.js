@@ -5,9 +5,7 @@ import Dropzone from 'react-dropzone'
 import domtoimage from 'dom-to-image'
 import { SwatchesPicker } from 'react-color'
 import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon, Switch } from 'evergreen-ui'
-
 import './waveform.css'
-var html2canvas = require('html2canvas')
 
 let FPS = 2
 
@@ -24,12 +22,13 @@ class Waveform extends React.Component {
       duration: null,
       error: null,
       preparing: false,
-      showCover: true,
+      showCover: false,
       showEditor: false,
       showHelp: true,
       coverImage: null,
       tags: {},
       uploadedAudioFilename: null,
+      uploadedFrames: null,
       uploadProgress: null,
       uploadTotal: null,
       working: false,
@@ -141,7 +140,7 @@ class Waveform extends React.Component {
     return new File([u8arr], filename, {type:mime});
   }
 
-  exportFrames() {
+  async exportFrames() {
     this.setState({
       working: true,
       showEditor: false,
@@ -169,15 +168,31 @@ class Waveform extends React.Component {
     })
   }
 
-  mergeFrames() {
-    this.setState({ working: true })
+  async mergeFrames() {
+    this.setState({
+      working: true,
+      uploadedFrames: 0
+    })
     const timestamp = Date.now()
     this.exportedImages.forEach(async (image, index) => {
-      const filename = timestamp + '-frame' + index + '.png'
+      const filename = timestamp + '-frame' + (1000 + index) + '.png'
       var blob = this.dataURLtoFile(image, filename)            
       var formData = new FormData();
       formData.append('file', blob, filename);
-      await axios.post(APIURL + "uploadMusic", formData)
+      await axios.post(APIURL + "uploadFrames", formData).then((response) => {
+        // console.log(response)
+        this.setState({ uploadedFrames: this.state.uploadedFrames++ })
+      })
+    })
+    await axios({
+      url: APIURL + "mergeFrames",
+      method: 'post',
+      params: {
+        timestamp,
+        frames: this.exportedImages.length
+      }
+    }).then((response) => {
+      console.log('download video!', response)
     })
     // const blob = window.Whammy.fromImageArray(this.exportedImages, FPS)
     // this.compressWhenReady(blob)
