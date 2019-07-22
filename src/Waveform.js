@@ -3,8 +3,8 @@ import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
 import domtoimage from 'dom-to-image'
-import { SwatchesPicker } from 'react-color'
-import { Pane, Heading, FilePicker, Button, toaster, Spinner, Select, TextInputField, Icon, Switch } from 'evergreen-ui'
+import Editor from './Editor'
+import { Pane, Heading, FilePicker, Button, toaster, Spinner, Icon } from 'evergreen-ui'
 import './waveform.css'
 
 let FPS = 2
@@ -15,7 +15,6 @@ class Waveform extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      analysing: false,
       currentFrame: null,
       currentTime: null,
       downloadLink: null,
@@ -31,6 +30,21 @@ class Waveform extends React.Component {
       uploadProgress: null,
       uploadTotal: null,
       working: false,
+      waveStyle: {
+        width: 1280,
+        height: 360,
+        barWidth: 8,
+        barHeight: 1,
+        normalize: true,
+        barGap: 2,
+        cursorWidth: 2,
+        pixelRatio: 2,
+        progressColor: 'rgba(255, 255, 255, 1)',
+        waveColor: 'rgba(255, 255, 255, 0.6)',
+        cursorColor: 'transparent',
+        responsive: true,
+        backend: 'WebAudio',
+      },
       theme: {
         colorTop: '#000333',
         colorBottom: '#3f4c6b'
@@ -52,14 +66,14 @@ class Waveform extends React.Component {
       setTimeout(() => {
         this.wavesurfer = !this.wavesurfer ? WaveSurfer.create({
           container: document.querySelector('.waveform'),
-          ...this.props.theme
+          ...this.state.waveStyle
         }) : this.wavesurfer
         this.wavesurfer.on('loading', () => {
-          this.setState({ analysing: true })
+          // this.setState({ analysing: true })
         })
         this.wavesurfer.on('ready', () => {
           this.setState({
-            analysing: false,
+            // analysing: false,
             duration: this.wavesurfer.getDuration(),
             currentFrame: 0,
           })
@@ -111,8 +125,6 @@ class Waveform extends React.Component {
             album: 'Unknown',
             artist: 'Unknown',
             title: 'Unknown',
-            genre: 'Unknown',
-            year: 'Unknown',
           }
         })
         console.log(error);
@@ -261,9 +273,7 @@ class Waveform extends React.Component {
   }
 
   render() {
-    const { format, elements } = this.props
     const {
-      analysing,
       downloadLink,
       currentFrame,
       duration,
@@ -275,11 +285,10 @@ class Waveform extends React.Component {
       showHelp,
       working,
       theme,
-      showTopColorPicker,
-      showBottomColorPicker
+      tags,
     } = this.state
     const length = (duration / 60).toFixed(1)
-    const { album, artist, title, genre, year } = this.state.tags
+    const { album, artist, title } = this.state.tags
 
     return (
       <Pane clearfix style={{ position: 'relative' }}>
@@ -325,12 +334,10 @@ class Waveform extends React.Component {
                 <Icon icon="ban-circle" color="danger" size={64} />
                 <p>Won't eat that, sorry!</p>
               </div> }
-              { analysing && <div className="dropzoneInfo">
-                <p>Analysing..</p>
-              </div> }
             </div>
           )}
         </Dropzone> }
+
         { working && <div className='curtain'>
           <Pane
             display="flex"
@@ -345,6 +352,7 @@ class Waveform extends React.Component {
             <span>{Math.floor((100/Math.floor(duration * FPS)) * currentFrame)}%</span>
           </Pane>
         </div> }
+
         { !showHelp && <Pane
           elevation={2}
           display="flex"
@@ -361,8 +369,8 @@ class Waveform extends React.Component {
           <div
             className='waveformContainer'
             style={{
-              width: `${format.width}px`,
-              height: `${format.height}px`,
+              width: `1280px`,
+              height: `720px`,
               zoom: working ? '1' : '0.5',
               background: showHelp ? '#333' : `linear-gradient(to bottom, ${theme.colorTop} 0%,${theme.colorBottom} 100%)`
             }}
@@ -378,9 +386,9 @@ class Waveform extends React.Component {
                 />
               </div> }
               <div className="info">           
-                { elements.artist && artist && <h2>{artist}</h2> }
-                { elements.title && title && <h1>"{title}"</h1> }
-                <p>{ elements.album && album } { elements.genre && genre} { elements.year && year }</p>
+                { artist && <h2>{artist}</h2> }
+                { title && <h1>"{title}"</h1> }
+                <p>{ album && album }</p>
               </div>
               <div className='waveform'>
                 <div className='wave'></div>
@@ -399,16 +407,11 @@ class Waveform extends React.Component {
                 intent="none"
                 iconBefore="cog"
                 disabled={working || preparing}
-                onClick={() => { this.setState({ showEditor: !showEditor })}}
+                onClick={() => {
+                  this.setState({ showEditor: !showEditor })
+                  this.wavesurfer.seekTo(!showEditor ? 0.3 : 0)
+                }}
               >Options</Button>
-              <Select
-                disabled
-                marginLeft={10}
-                defaultValue={720}
-                onChange={event => console.log(event.target.value)}
-              >
-                <option value="720">720p</option>
-              </Select>
             </Pane>
             { !downloadLink && (working || preparing) && <Pane
               width="33%"
@@ -451,139 +454,15 @@ class Waveform extends React.Component {
           </Pane> }
         </Pane> }
 
-        { showEditor && <Pane
-          elevation={0}
-          display="flex"
-          padding={30}
-          width={250}
-          justifyContent="left"
-          alignItems="left"
-          flexDirection="column"
-          backgroundColor="#F5F6F7"
-          marginBottom={30}
-          style={{
-            position: 'absolute',
-            width: '160px',
-            top: '45px',
-            right: '-161px',
-            display: 'flex',
-            alignItems: 'center',
+        { showEditor && <Editor
+          theme={theme}
+          showCover={showCover}
+          tags={tags}
+          onUpdate={(newValues) => { this.setState(newValues) }}
+          onUpdateWaveColor={(newColor) => {
+            this.wavesurfer.setProgressColor(newColor)
           }}
-        >
-          <Heading size={500}>Top Color</Heading>
-          <div
-            className='colorPickerToggle'
-            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
-            onClick={() => {
-              this.setState({ showTopColorPicker: !showTopColorPicker })
-            }}
-          />
-          { showTopColorPicker && <SwatchesPicker
-            color={theme.colorTop}
-            onChangeComplete={(color) => {
-              this.setState({ theme: {...this.state.theme, colorTop: color.hex} })
-            }}
-          /> }
-        </Pane> }
-
-        { showEditor && <Pane
-          elevation={0}
-          display="flex"
-          padding={30}
-          width={250}
-          justifyContent="left"
-          alignItems="left"
-          flexDirection="column"
-          backgroundColor="#F5F6F7"
-          marginBottom={30}
-          style={{
-            position: 'absolute',
-            width: '160px',
-            top: '335px',
-            right: '-161px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <Heading size={500}>Bottom Color</Heading>
-          <div
-            className='colorPickerToggle'
-            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
-            onClick={() => {
-              this.setState({ showBottomColorPicker: !showBottomColorPicker })
-            }}
-          />
-          { showBottomColorPicker && <SwatchesPicker
-            color={theme.colorBottom}
-            onChangeComplete={(color) => {
-              this.setState({ theme: {...this.state.theme, colorBottom: color.hex} })
-            }}
-          /> }
-        </Pane> }
-
-        { showEditor && <Pane
-          elevation={0}
-          display="flex"
-          padding={30}
-          width={250}
-          justifyContent="left"
-          alignItems="left"
-          flexDirection="column"
-          backgroundColor="#F5F6F7"
-          marginBottom={30}
-          style={{
-            position: 'absolute',
-            width: '250px',
-            top: '30px',
-            left: '-251px',
-          }}
-        >
-          <TextInputField
-            label="Artist"
-            defaultValue={artist}
-            onChange={(e) => {
-              this.setState({ tags: {...this.state.tags, artist: e.target.value} })
-            }}
-          />
-          <TextInputField
-            label="Title"
-            defaultValue={title}
-            onChange={(e) => {
-              this.setState({ tags: {...this.state.tags, title: e.target.value} })
-            }}
-          />
-          <TextInputField
-            label="Album"
-            defaultValue={album}
-            onChange={(e) => {
-              this.setState({ tags: {...this.state.tags, album: e.target.value} })
-            }}
-          />
-          <Pane>
-            <Heading size={400}>Cover image</Heading>
-            <Switch
-              height={24}
-              checked={showCover}
-              onChange={() => {
-                this.setState({ showCover: !showCover })
-              }}
-            />
-          </Pane>
-          {/*<TextInputField
-            label="Genre"
-            defaultValue={genre}
-            onChange={(e) => {
-              this.setState({ tags: {...this.state.tags, genre: e.target.value} })
-            }}
-          />
-          <TextInputField
-            label="Year"
-            defaultValue={year}
-            onChange={(e) => {
-              this.setState({ tags: {...this.state.tags, year: e.target.value} })
-            }}
-          />*/}
-        </Pane> } 
+        /> }
       </Pane>
     )
   }
