@@ -1,6 +1,6 @@
 import React from 'react'
-import { isChromium, isOpera, isChrome, isTablet, isMobile } from "react-device-detect";
-import { Pane, Alert } from 'evergreen-ui'
+// import { isChromium, isOpera, isChrome, isTablet, isMobile } from "react-device-detect";
+import { Pane } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
 
@@ -9,8 +9,10 @@ const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/'
 const waveStyle = {
   width: 1280,
   height: 360,
-  barWidth: 1,
-  barGap: 0,
+  barWidth: 8,
+  barHeight: 1,
+  normalize: true,
+  barGap: 2,
   cursorWidth: 2,
   pixelRatio: 2,
   progressColor: 'rgba(255, 255, 255, 1)',
@@ -100,35 +102,13 @@ class App extends React.Component {
   render() {
     const { selectedFormat, error } = this.state
 
-    // const formatOptions = outputFormats.map((format, index) => <option
-    //   key={index}
-    //   value={format.value}
-    // >{format.name}</option>)
+    const formatOptions = outputFormats.map((format, index) => <option
+      key={index}
+      value={format.value}
+    >{format.name}</option>)
 
-    // console.log('selectedFormat', selectedFormat)
-    // console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
-    const browserSupported = true // (isChrome || isChromium || isOpera) && (!isTablet || !isMobile)
-
-    // If browser not supported, show alert screen
-    if (!browserSupported) {
-      return (<Pane clearfix>
-        <Pane
-          elevation={1}
-          width={window.innerWidth}
-          height={window.innerHeight}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          flexDirection="column"
-          backgroundColor="white"
-        >
-        <Alert
-          intent="danger"
-          title="Your browser is not supported. Please use desktop Chrome (or Chromium based) or Opera browser. We will soon support other browsers too."
-        />
-        </Pane>
-      </Pane>)
-    }
+    console.log('selectedFormat', selectedFormat)
+    console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
 
     // Otherwise start the app
     return (
@@ -148,14 +128,14 @@ class App extends React.Component {
             format={outputFormats.find(format => format.value === selectedFormat).size}
             elements={elements}
           /> : <h1 style={{ color: 'white' }}>{error}</h1> }
-          {/*<div className="formatSelector">
+          <div className="formatSelector">
             <select
               defaultValue={selectedFormat}
               onChange={this.handleFormatChange.bind(this)}
             >
               {formatOptions}
             </select>
-          </div>*/}
+          </div>
         </Pane>
       </Pane>
     )
