@@ -1,0 +1,33 @@
+*:focus {
+	outline: none;
+}
+
+.editor {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.editor .item {
+	margin: 20px;
+}
+
+.editor label {
+	color: white;
+	margin: 10px;
+}
+
+.colorPickerToggle {
+  width: 64px;
+  height: 64px;
+  cursor: pointer;
+  background-image: url('/colors.png');
+  background-size: 100%;
+  border: 1px solid transparent;
+  border-radius: 50%;
+}
+
+.swatches-picker {
+  position: absolute;
+  top: 130px;
+  z-index: 3;
+}

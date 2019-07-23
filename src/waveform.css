@@ -22,11 +22,10 @@
 
 .waveform {
 	position: absolute;
-  top: 0;
+  top: 320px;
   left: 0;
   right: 0;
   bottom: 0;
-	padding-top: 320px;
   height: 360px;
   overflow: hidden;
   pointer-events: none;
@@ -86,6 +85,8 @@
 
 .info p {
 	color: #e7e8ec;
+  font-size: 2em;
+  line-height: 0;
 }
 
 .dropzoneContainer {
@@ -156,34 +157,4 @@ button.download {
   color: white;
   background: green;
   line-height: 18px;
-}
-
-.editor {
-	display: flex;
-	flex-wrap: wrap;
-}
-
-.editor .item {
-	margin: 20px;
-}
-
-.editor label {
-	color: white;
-	margin: 10px;
-}
-
-.colorPickerToggle {
-  width: 64px;
-  height: 64px;
-  cursor: pointer;
-  background-image: url('/colors.png');
-  background-size: 100%;
-  border: 1px solid transparent;
-  border-radius: 50%;
-}
-
-.swatches-picker {
-  position: absolute;
-  top: 130px;
-  z-index: 3;
 }

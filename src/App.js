@@ -6,70 +6,10 @@ import './App.css'
 
 const APIURL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000/' : 'http://142.93.173.43:5000/'
 
-const waveStyle = {
-  width: 1280,
-  height: 360,
-  barWidth: 8,
-  barHeight: 1,
-  normalize: true,
-  barGap: 2,
-  cursorWidth: 2,
-  pixelRatio: 2,
-  progressColor: 'rgba(255, 255, 255, 1)',
-  waveColor: 'rgba(255, 255, 255, 0.6)',
-  cursorColor: 'transparent',
-  responsive: true,
-  backend: 'WebAudio',
-}
-
-const outputFormats = [
-  {
-    name: '360p',
-    value: 360,
-    size: {
-      width: 640,
-      height: 360
-    }    
-  },
-  {
-    name: '480p',
-    value: 480,
-    size: {
-      width: 850,
-      height: 480
-    }
-  },
-  {
-    name: '720p',
-    value: 720,
-    size: {
-      width: 1280,
-      height: 720
-    }    
-  },
-  {
-    name: '1080p',
-    value: 1080,
-    size: {
-      width: 1920,
-      height: 1080
-    }    
-  }
-]
-
-const elements = {
-  artist: true,
-  album: true,
-  title: true,
-  genre: false,
-  year: false
-}
-
 class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      selectedFormat: 720,
       data: null,
       error: null
     }
@@ -100,15 +40,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { selectedFormat, error } = this.state
-
-    const formatOptions = outputFormats.map((format, index) => <option
-      key={index}
-      value={format.value}
-    >{format.name}</option>)
-
-    console.log('selectedFormat', selectedFormat)
-    console.log('outputFormats', outputFormats.find(format => format.value === selectedFormat).size)
+    const { error } = this.state
 
     // Otherwise start the app
     return (
@@ -123,19 +55,7 @@ class App extends React.Component {
           flexDirection="column"
           backgroundColor="white"
         >
-          {!error ? <Waveform
-            theme={waveStyle}
-            format={outputFormats.find(format => format.value === selectedFormat).size}
-            elements={elements}
-          /> : <h1 style={{ color: 'white' }}>{error}</h1> }
-          <div className="formatSelector">
-            <select
-              defaultValue={selectedFormat}
-              onChange={this.handleFormatChange.bind(this)}
-            >
-              {formatOptions}
-            </select>
-          </div>
+          {!error ? <Waveform /> : <h1 style={{ color: 'white' }}>{error}</h1> }
         </Pane>
       </Pane>
     )
