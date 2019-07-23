@@ -183,7 +183,7 @@ class Waveform extends React.Component {
         // Merge exported images into video
         this.mergeFrames()
       }  
-    })
+    }, 300)
   }
 
   seekTo(duration, callback) {
