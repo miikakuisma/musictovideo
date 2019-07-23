@@ -9,7 +9,8 @@ class Editor extends React.Component {
     this.state = {
       coverImage: null,
       showTopColorPicker: false,
-      showMidColorPicker: false,
+      showWaveColorPicker: false,
+      showProgressColorPicker: false,
       showBottomColorPicker: false
     }
   }
@@ -28,12 +29,13 @@ class Editor extends React.Component {
   render() {
     const {
       showTopColorPicker,
-      showMidColorPicker,
+      showWaveColorPicker,
+      showProgressColorPicker,
       showBottomColorPicker
     } = this.state
     const { theme, showCover } = this.props
     const { album, artist, title } = this.props.tags
-
+    console.log(theme)
     // setProgressColor(color)
     // setCursorColor(color)
     // setWaveColor(color)
@@ -57,92 +59,88 @@ class Editor extends React.Component {
             right: '-161px',
             display: 'flex',
             alignItems: 'center',
+            flexDirection: 'column'
           }}
         >
-          <Heading size={500}>Top Color</Heading>
-          <div
-            className='colorPickerToggle'
-            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
-            onClick={() => {
-              this.setState({ showTopColorPicker: !showTopColorPicker })
-            }}
-          />
-          { showTopColorPicker && <SwatchesPicker
-            color={theme.colorTop}
-            onChangeComplete={(color) => {
-              this.props.onUpdate({ theme: {...theme, colorTop: color.hex} })
-            }}
-          /> }
-        </Pane>
+          <div className="section">
+            <Heading size={500} marginBottom={10}>Top Color</Heading>
+            <div
+              className='colorPickerToggle'
+              style={{
+                border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent',
+                backgroundColor: theme.colorTop
+              }}
+              onClick={() => {
+                this.setState({ showTopColorPicker: !showTopColorPicker })
+              }}
+            />
+            { showTopColorPicker && <SwatchesPicker
+              color={theme.colorTop}
+              onChangeComplete={(color) => {
+                this.props.onUpdate({ theme: {...theme, colorTop: color.hex} })
+              }}
+            /> }
+          </div>
 
-        <Pane
-          elevation={0}
-          display="flex"
-          padding={10}
-          width={250}
-          justifyContent="left"
-          alignItems="left"
-          flexDirection="column"
-          backgroundColor="#F5F6F7"
-          marginBottom={30}
-          style={{
-            position: 'absolute',
-            width: '160px',
-            top: '190px',
-            right: '-161px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <Heading size={500}>Progress Color</Heading>
-          <div
-            className='colorPickerToggle'
-            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
-            onClick={() => {
-              this.setState({ showMidColorPicker: !showMidColorPicker })
-            }}
-          />
-          { showMidColorPicker && <SwatchesPicker
-            color={theme.colorTop}
-            onChangeComplete={(color) => {
-              this.props.onUpdateWaveColor(color.hex)
-            }}
-          /> }
-        </Pane>
+          <div className="section">
+            <Heading size={500} marginBottom={10}>Wave Color</Heading>
+            <div
+              className='colorPickerToggle'
+              style={{
+                border: showWaveColorPicker ? '1px solid #ccc' : '1px solid transparent',
+                backgroundColor: theme.waveColor
+              }}
+              onClick={() => {
+                this.setState({ showWaveColorPicker: !showWaveColorPicker })
+              }}
+            />
+            { showWaveColorPicker && <SwatchesPicker
+              color={theme.colorTop}
+              onChangeComplete={(color) => {
+                this.props.onUpdateWaveColor(color.hex)
+              }}
+            /> }
+          </div>
 
-        <Pane
-          elevation={0}
-          display="flex"
-          padding={10}
-          width={250}
-          justifyContent="left"
-          alignItems="left"
-          flexDirection="column"
-          backgroundColor="#F5F6F7"
-          marginBottom={30}
-          style={{
-            position: 'absolute',
-            width: '160px',
-            top: '335px',
-            right: '-161px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <Heading size={500}>Bottom Color</Heading>
-          <div
-            className='colorPickerToggle'
-            style={{ border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent' }}
-            onClick={() => {
-              this.setState({ showBottomColorPicker: !showBottomColorPicker })
-            }}
-          />
-          { showBottomColorPicker && <SwatchesPicker
-            color={theme.colorBottom}
-            onChangeComplete={(color) => {
-              this.props.onUpdate({ theme: {...theme, colorBottom: color.hex} })
-            }}
-          /> }
+          <div className="section">
+            <Heading size={500} marginBottom={10}>Progress Color</Heading>
+            <div
+              className='colorPickerToggle'
+              style={{
+                border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent',
+                backgroundColor: theme.progressColor
+              }}
+              onClick={() => {
+                this.setState({ showProgressColorPicker: !showProgressColorPicker })
+              }}
+            />
+            { showProgressColorPicker && <SwatchesPicker
+              color={theme.colorTop}
+              onChangeComplete={(color) => {
+                this.props.onUpdateProgressColor(color.hex)
+              }}
+            /> }
+          </div>
+
+          <div className="section">
+            <Heading size={500} marginBottom={10}>Bottom Color</Heading>
+            <div
+              className='colorPickerToggle'
+              style={{
+                border: showBottomColorPicker ? '1px solid #ccc' : '1px solid transparent',
+                backgroundColor: theme.colorBottom
+              }}
+              onClick={() => {
+                this.setState({ showBottomColorPicker: !showBottomColorPicker })
+              }}
+            />
+            { showBottomColorPicker && <SwatchesPicker
+              color={theme.colorBottom}
+              onChangeComplete={(color) => {
+                this.props.onUpdate({ theme: {...theme, colorBottom: color.hex} })
+              }}
+            /> }
+          </div>
         </Pane>
 
         <Pane

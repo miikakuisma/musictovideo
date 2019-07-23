@@ -40,16 +40,18 @@ class Waveform extends React.Component {
         normalize: true,
         barGap: 1,
         cursorWidth: 2,
-        pixelRatio: 2,
-        progressColor: 'rgba(255, 255, 255, 1)',
+        pixelRatio: 1,
         waveColor: 'rgba(255, 255, 255, 0.6)',
+        progressColor: 'rgba(255, 255, 255, 1)',
         cursorColor: 'transparent',
         responsive: true,
         backend: 'WebAudio',
       },
       theme: {
         colorTop: '#000333',
-        colorBottom: '#3f4c6b'
+        colorBottom: '#3f4c6b',
+        waveColor: 'rgba(255, 255, 255, 0.6)',
+        progressColor: 'rgba(255, 255, 255, 1)',
       },
       showTopColorPicker: false,
       showBottomColorPicker: false
@@ -476,8 +478,13 @@ class Waveform extends React.Component {
           showCover={showCover}
           tags={tags}
           onUpdate={(newValues) => { this.setState(newValues) }}
-          onUpdateWaveColor={(newColor) => {
+          onUpdateProgressColor={(newColor) => {
             this.wavesurfer.setProgressColor(newColor)
+            this.setState({ theme: {...theme, progressColor: newColor} })
+          }}
+          onUpdateWaveColor={(newColor) => {
+            this.wavesurfer.setWaveColor(newColor)
+            this.setState({ theme: {...theme, waveColor: newColor} })
           }}
         /> }
       </Pane>

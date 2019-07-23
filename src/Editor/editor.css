@@ -16,18 +16,26 @@
 	margin: 10px;
 }
 
+.section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
 .colorPickerToggle {
-  width: 64px;
-  height: 64px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
-  background-image: url('/colors.png');
-  background-size: 100%;
   border: 1px solid transparent;
   border-radius: 50%;
 }
 
 .swatches-picker {
   position: absolute;
-  top: 130px;
+  top: 60px;
+  left: -130px;
   z-index: 3;
 }
