@@ -3,8 +3,10 @@ import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
 import domtoimage from 'dom-to-image'
-import Editor from './Editor'
+import Editor from './Editor/'
 import { Pane, Heading, FilePicker, Button, toaster, Spinner, Icon } from 'evergreen-ui'
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 import './waveform.css'
 
 let FPS = 2
@@ -33,10 +35,10 @@ class Waveform extends React.Component {
       waveStyle: {
         width: 1280,
         height: 360,
-        barWidth: 8,
+        barWidth: 2,
         barHeight: 1,
         normalize: true,
-        barGap: 2,
+        barGap: 1,
         cursorWidth: 2,
         pixelRatio: 2,
         progressColor: 'rgba(255, 255, 255, 1)',
@@ -161,19 +163,20 @@ class Waveform extends React.Component {
     this.exportTimer = setInterval(() => {
       if (this.frame <= (this.state.duration * FPS)) {
         const nextFrame = 1/(this.state.duration * FPS) * this.frame
-        this.wavesurfer.seekTo(nextFrame)
-        domtoimage.toPng(document.querySelector(".waveformContainer"), {
-          quality: 1,
-          width: 1280,
-          height: 720
-        })
-          .then((dataUrl) => {
-            this.exportedImages.push(dataUrl)
-            this.setState({
-              currentFrame: this.frame + 1,
-            })
-            this.frame++
+        this.seekTo(nextFrame, () => {
+          domtoimage.toPng(document.querySelector(".waveformContainer"), {
+            quality: 0.8,
+            width: 1280,
+            height: 720
           })
+            .then((dataUrl) => {
+              this.exportedImages.push(dataUrl)
+              this.setState({
+                currentFrame: this.frame + 1,
+              })
+              this.frame++
+            })
+        })
       } else {
         clearInterval(this.exportTimer)
         this.setState({ working: false })
@@ -181,6 +184,11 @@ class Waveform extends React.Component {
         this.mergeFrames()
       }  
     })
+  }
+
+  seekTo(duration, callback) {
+    this.wavesurfer.seekTo(duration)
+    callback()
   }
 
   async mergeFrames() {
@@ -290,6 +298,8 @@ class Waveform extends React.Component {
     const length = (duration / 60).toFixed(1)
     const { album, artist, title } = this.state.tags
 
+    const progress = Math.floor((100/Math.floor(duration * FPS)) * currentFrame)
+
     return (
       <Pane clearfix style={{ position: 'relative' }}>
         { showHelp && <Heading
@@ -346,10 +356,17 @@ class Waveform extends React.Component {
             alignItems="center"
             flexDirection="column"
           >
-            <Spinner />
-            <br/>
-            <span>Creating your video</span><br/>
-            <span>{Math.floor((100/Math.floor(duration * FPS)) * currentFrame)}%</span>
+            <CircularProgressbar
+              value={progress}
+              text={`${progress}%`}
+              circleRatio={0.75}
+              styles={buildStyles({
+                rotation: 1 / 2 + 1 / 8,
+                strokeLinecap: "butt",
+                trailColor: "#eee"
+              })}
+            />
+            <span style={{ marginTop: '-40px' }}>Creating your video</span>
           </Pane>
         </div> }
 

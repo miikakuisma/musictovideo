@@ -1,7 +1,7 @@
 import React from 'react'
 import { SwatchesPicker } from 'react-color'
 import { Pane, Heading, TextInputField, Switch, Select } from 'evergreen-ui'
-import './waveform.css'
+import './editor.css'
 
 class Editor extends React.Component {
   constructor(props) {
