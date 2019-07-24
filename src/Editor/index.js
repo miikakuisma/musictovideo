@@ -35,10 +35,6 @@ class Editor extends React.Component {
     } = this.state
     const { theme, showCover } = this.props
     const { album, artist, title } = this.props.tags
-    console.log(theme)
-    // setProgressColor(color)
-    // setCursorColor(color)
-    // setWaveColor(color)
 
     return (
       <div>

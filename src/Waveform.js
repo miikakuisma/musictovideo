@@ -162,6 +162,7 @@ class Waveform extends React.Component {
     })
     this.frame = 1
     this.exportedImages = []
+    const timestamp = Date.now()
     this.exportTimer = setInterval(() => {
       if (this.frame <= (this.state.duration * FPS)) {
         const nextFrame = 1/(this.state.duration * FPS) * this.frame
@@ -171,21 +172,25 @@ class Waveform extends React.Component {
             width: 1280,
             height: 720
           })
-            .then((dataUrl) => {
-              this.exportedImages.push(dataUrl)
+            .then(async (dataUrl) => {
+              const filename = timestamp + '-frame' + (1000 + this.frame) + '.png'
+              var blob = this.dataURLtoFile(dataUrl, filename)            
+              var formData = new FormData();
+              formData.append('file', blob, filename);
               this.setState({
                 currentFrame: this.frame + 1,
               })
               this.frame++
+              axios.post(APIURL + "uploadFrames", formData)
             })
         })
       } else {
         clearInterval(this.exportTimer)
         this.setState({ working: false })
         // Merge exported images into video
-        this.mergeFrames()
+        this.mergeFrames(timestamp)
       }  
-    }, 300)
+    }, 200)
   }
 
   seekTo(duration, callback) {
@@ -193,7 +198,7 @@ class Waveform extends React.Component {
     callback()
   }
 
-  async mergeFrames() {
+  async mergeFrames(timestamp) {
     this.setState({
       working: false,
       preparing: true
@@ -201,14 +206,14 @@ class Waveform extends React.Component {
     toaster.success('Almost done!', {
       description: 'Adding finishing touch...'
     })
-    const timestamp = Date.now()
-    this.exportedImages.forEach(async (image, index) => {
-      const filename = timestamp + '-frame' + (1000 + index) + '.png'
-      var blob = this.dataURLtoFile(image, filename)            
-      var formData = new FormData();
-      formData.append('file', blob, filename);
-      await axios.post(APIURL + "uploadFrames", formData)
-    })
+    // const timestamp = Date.now()
+    // this.exportedImages.forEach(async (image, index) => {
+      // const filename = timestamp + '-frame' + (1000 + index) + '.png'
+      // var blob = this.dataURLtoFile(image, filename)            
+      // var formData = new FormData();
+      // formData.append('file', blob, filename);
+      // await axios.post(APIURL + "uploadFrames", formData)
+    // })
     await axios({
       url: APIURL + "mergeFrames",
       method: 'post',
@@ -216,7 +221,6 @@ class Waveform extends React.Component {
         fps: FPS,
         timestamp,
         audiofile: this.state.uploadedAudioFilename,
-        frames: this.exportedImages.length
       }
     }).then((response) => {
       this.compressWhenReady(response)
@@ -301,6 +305,10 @@ class Waveform extends React.Component {
     const { album, artist, title } = this.state.tags
 
     const progress = Math.floor((100/Math.floor(duration * FPS)) * currentFrame)
+    const secondsLeft = Math.floor((duration*FPS/5) - (currentFrame/5))
+    const formatMinutes = Math.floor(secondsLeft / 60)
+    const formatSeconds = secondsLeft - (Math.floor(secondsLeft / 60)) * 60
+    const timeLeft = `${formatMinutes < 10 ? '0' + formatMinutes : formatMinutes}:${formatSeconds < 10 ? '0' + formatSeconds : formatSeconds}`
 
     return (
       <Pane clearfix style={{ position: 'relative' }}>
@@ -360,7 +368,7 @@ class Waveform extends React.Component {
           >
             <CircularProgressbar
               value={progress}
-              text={`${progress}%`}
+              text={`${timeLeft}`}
               circleRatio={0.75}
               styles={buildStyles({
                 rotation: 1 / 2 + 1 / 8,
@@ -368,7 +376,7 @@ class Waveform extends React.Component {
                 trailColor: "#eee"
               })}
             />
-            <span style={{ marginTop: '-40px' }}>Creating your video</span>
+            <span style={{ marginTop: '-40px' }}>time remaining</span>
           </Pane>
         </div> }
 
