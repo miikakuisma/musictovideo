@@ -158,3 +158,8 @@ button.download {
   background: green;
   line-height: 18px;
 }
+
+button.cancel, button.startover {
+  padding-right: 10px;
+  margin-right: 10px;
+}

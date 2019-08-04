@@ -35,10 +35,10 @@ class Waveform extends React.Component {
       waveStyle: {
         width: 1280,
         height: 360,
-        barWidth: 2,
-        barHeight: 1,
-        normalize: true,
-        barGap: 1,
+        barWidth: 3,
+        barHeight: .8,
+        normalize: false,
+        barGap: 2,
         cursorWidth: 2,
         pixelRatio: 1,
         waveColor: 'rgba(255, 255, 255, 0.6)',
@@ -286,6 +286,21 @@ class Waveform extends React.Component {
     }
   }
 
+  cancel() {
+    axios({
+      url: APIURL + "cancel",
+      method: 'post',
+      params: {
+        audiofile: this.state.uploadedAudioFilename,
+      }
+    })
+    this.startOver()
+  }
+
+  startOver() {
+    window.location.reload()
+  }
+
   render() {
     const {
       downloadLink,
@@ -428,7 +443,7 @@ class Waveform extends React.Component {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Pane width="33%">
+            <Pane width="50%">
               <Button
                 appearance={showEditor ? "default" : "primary"}
                 intent="none"
@@ -439,24 +454,43 @@ class Waveform extends React.Component {
                   this.wavesurfer.seekTo(!showEditor ? 0.3 : 0)
                 }}
               >Options</Button>
+              { !downloadLink && (working || preparing) && <Pane
+                display="flex"
+                flexDirection="row"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Spinner />
+              </Pane> }
             </Pane>
-            { !downloadLink && (working || preparing) && <Pane
-              width="33%"
-              display="flex"
-              flexDirection="row"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <Spinner />
-            </Pane> }
             <Pane
-              width="33%"
-              alignItems="center"
+              width="auto"
+              alignItems="right"
               justifyContent="right"
             >
               { !downloadLink && <Button
+                className="cancel"
+                height={60}
+                disabled={working || preparing}
+                appearance="primary"
+                intent="danger"
+                iconBefore="trash"
+                onClick={() => {
+                  this.cancel()
+                }}
+              /> }
+              { downloadLink && <Button
+                className="startover"
+                height={60}
+                appearance="primary"
+                intent="none"
+                iconBefore="add"
+                onClick={() => {
+                  this.startOver()
+                }}
+              /> }
+              { !downloadLink && <Button
                 className="generate"
-                width="100%"
                 height={60}
                 disabled={working || preparing}
                 appearance="primary"
@@ -468,7 +502,6 @@ class Waveform extends React.Component {
               >{this.getButtonText()}</Button> }
               { downloadLink && <Button
                 className="download"
-                width="100%"
                 height={60} 
                 appearance="primary"
                 intent="success"

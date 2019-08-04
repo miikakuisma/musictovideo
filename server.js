@@ -89,6 +89,12 @@ app.post('/uploadFrames',function(req, res) {
   })
 });
 
+app.post('/cancel',function(req, res) {
+  fs.unlink('uploads/' + req.query.audiofile, function() {
+    // console.log('deleted audio file')
+  })
+});
+
 app.post('/mergeFrames', function(req, res) {
   // convert images to mp4 video
   exec('ffmpeg -framerate ' + req.query.fps + ' -pattern_type glob -i "uploads/'+req.query.timestamp+'*.png" -c:v libx264 -s:v 1280x720 -profile:v high -crf 20 -pix_fmt yuv420p -y temp/'+req.query.timestamp+'.mp4', (err, stdout, stderr) => {
