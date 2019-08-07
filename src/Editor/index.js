@@ -1,6 +1,6 @@
 import React from 'react'
 import { SwatchesPicker } from 'react-color'
-import { Pane, Heading, TextInputField, Switch, Select } from 'evergreen-ui'
+import { Pane, Heading, TextInputField, Switch, Select, Popover, Button, Text, Icon } from 'evergreen-ui'
 import './editor.css'
 
 class Editor extends React.Component {
@@ -9,9 +9,10 @@ class Editor extends React.Component {
     this.state = {
       coverImage: null,
       showTopColorPicker: false,
+      showTextColorPicker: false,
       showWaveColorPicker: false,
       showProgressColorPicker: false,
-      showBottomColorPicker: false
+      showBottomColorPicker: false,
     }
   }
 
@@ -29,11 +30,13 @@ class Editor extends React.Component {
   render() {
     const {
       showTopColorPicker,
+      showTextColorPicker,
       showWaveColorPicker,
       showProgressColorPicker,
       showBottomColorPicker
     } = this.state
-    const { theme, showCover } = this.props
+    const { theme, showCover, showOverlay } = this.props
+    const { backgroundPosition, backgroundSize } = this.props.theme
     const { album, artist, title } = this.props.tags
 
     return (
@@ -74,6 +77,26 @@ class Editor extends React.Component {
               color={theme.colorTop}
               onChangeComplete={(color) => {
                 this.props.onUpdate({ theme: {...theme, colorTop: color.hex} })
+              }}
+            /> }
+          </div>
+
+          <div className="section">
+            <Heading size={500} marginBottom={10}>Text Color</Heading>
+            <div
+              className='colorPickerToggle'
+              style={{
+                border: showTextColorPicker ? '1px solid #ccc' : '1px solid transparent',
+                backgroundColor: theme.textColor
+              }}
+              onClick={() => {
+                this.setState({ showTextColorPicker: !showTextColorPicker })
+              }}
+            />
+            { showTextColorPicker && <SwatchesPicker
+              color={theme.textColor}
+              onChangeComplete={(color) => {
+                this.props.onUpdate({ theme: {...theme, textColor: color.hex} })
               }}
             /> }
           </div>
@@ -178,7 +201,26 @@ class Editor extends React.Component {
             }}
           />
           <Pane marginBottom={30}>
-            <Heading size={400}>Cover image</Heading>
+            <Heading size={400}>
+              Background image
+              <Popover
+                content={
+                  <Pane
+                    width={280}
+                    height={80}
+                    padding={20}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    flexDirection="column"
+                  >
+                    <Text>Optimal size is 1280x720 px. Image will be scaled to cover the area.</Text>
+                  </Pane>
+                }
+              >
+                <Button style={{ float: 'right' }}><Icon icon="info-sign" /></Button>
+              </Popover>              
+            </Heading>
             <Switch
               height={24}
               checked={showCover}
@@ -187,6 +229,42 @@ class Editor extends React.Component {
               }}
             />
           </Pane>
+          { showCover && <Pane marginBottom={30} alignItems="left" justifyContent="left">
+            <Heading size={400}>Background options</Heading>
+            <Select
+              defaultValue={backgroundPosition}
+              onChange={event => this.props.onUpdate({ theme: {...theme, backgroundPosition: event.target.value }})}
+            >
+              <option value="top">Top</option>
+              <option value="center">Center</option>
+              <option value="bottom">Bottom</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </Select>
+
+            <Select
+              defaultValue={backgroundSize}
+              onChange={event => this.props.onUpdate({ theme: {...theme, backgroundSize: event.target.value }})}
+            >
+              <option value="cover">Cover</option>
+              <option value="contain">Contain</option>
+              <option value="50%">50%</option>
+              <option value="100%">100%</option>
+              <option value="200%">200%</option>
+              <option value="300%">300%</option>
+              <option value="400%">400%</option>
+            </Select>
+          </Pane> }
+          { showCover && <Pane marginBottom={30} alignItems="left" justifyContent="left">
+            <Heading size={400}>Overlay</Heading>
+            <Switch
+              height={24}
+              checked={showOverlay}
+              onChange={() => {
+                this.props.onUpdate({ showOverlay: !showOverlay })
+              }}
+            />
+          </Pane> }
           <Pane marginBottom={30} alignItems="left" justifyContent="left">
             <Heading size={400}>Output format</Heading>
             <Select

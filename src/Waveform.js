@@ -22,7 +22,9 @@ class Waveform extends React.Component {
       downloadLink: null,
       duration: null,
       error: null,
+      playing: false,
       preparing: false,
+      showOverlay: false,
       showCover: false,
       showEditor: false,
       showHelp: true,
@@ -49,9 +51,12 @@ class Waveform extends React.Component {
       },
       theme: {
         colorTop: '#000333',
+        textColor: 'white',
         colorBottom: '#3f4c6b',
         waveColor: 'rgba(255, 255, 255, 0.6)',
         progressColor: 'rgba(255, 255, 255, 1)',
+        backgroundPosition: 'center',
+        backgroundSize: 'cover'
       },
       showTopColorPicker: false,
       showBottomColorPicker: false
@@ -308,7 +313,9 @@ class Waveform extends React.Component {
       duration,
       coverImage,
       error,
+      playing,
       preparing,
+      showOverlay,
       showCover,
       showEditor,
       showHelp,
@@ -318,7 +325,7 @@ class Waveform extends React.Component {
     } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title } = this.state.tags
-
+    const { textColor, backgroundSize, backgroundPosition } = this.state.theme
     const progress = Math.floor((100/Math.floor(duration * FPS)) * currentFrame)
     const secondsLeft = Math.floor((duration*FPS/5) - (currentFrame/5))
     const formatMinutes = Math.floor(secondsLeft / 60)
@@ -418,7 +425,11 @@ class Waveform extends React.Component {
             }}
           >
             <Pane>
-              { showCover && <div className="cover" style={{ backgroundImage: `url(${coverImage})` }}>
+              { showCover && <div className="cover" style={{
+                backgroundImage: `url(${coverImage})`,
+                backgroundSize: backgroundSize,
+                backgroundPosition: backgroundPosition
+              }}>
                 <input
                   type="file"
                   style={{
@@ -427,7 +438,8 @@ class Waveform extends React.Component {
                   onChange={this.handleDropCover.bind(this)}
                 />
               </div> }
-              <div className="info">           
+              { showOverlay && <div className="overlay"></div> }
+              <div className="info" style={{ color: textColor }}>           
                 { artist && <h2>{artist}</h2> }
                 { title && <h1>"{title}"</h1> }
                 <p>{ album && album }</p>
@@ -445,6 +457,17 @@ class Waveform extends React.Component {
           >
             <Pane width="50%">
               <Button
+                appearance={playing ? "default" : "primary"}
+                intent="none"
+                marginRight={10}
+                iconBefore={playing ? "pause" : "play"}
+                disabled={working || preparing}
+                onClick={() => {
+                  this.setState({ playing: !playing })
+                  this.wavesurfer.playPause()
+                }}
+              >{playing ? "Pause" : "Play"}</Button>
+              <Button
                 appearance={showEditor ? "default" : "primary"}
                 intent="none"
                 iconBefore="cog"
@@ -454,14 +477,6 @@ class Waveform extends React.Component {
                   this.wavesurfer.seekTo(!showEditor ? 0.3 : 0)
                 }}
               >Options</Button>
-              { !downloadLink && (working || preparing) && <Pane
-                display="flex"
-                flexDirection="row"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <Spinner />
-              </Pane> }
             </Pane>
             <Pane
               width="auto"
@@ -493,6 +508,7 @@ class Waveform extends React.Component {
                 className="generate"
                 height={60}
                 disabled={working || preparing}
+                isLoading={working || preparing}
                 appearance="primary"
                 intent="success"
                 iconBefore={ working || preparing ? null : "endorsed" }
@@ -517,6 +533,7 @@ class Waveform extends React.Component {
         { showEditor && <Editor
           theme={theme}
           showCover={showCover}
+          showOverlay={showOverlay}
           tags={tags}
           onUpdate={(newValues) => { this.setState(newValues) }}
           onUpdateProgressColor={(newColor) => {
