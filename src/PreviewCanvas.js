@@ -18,9 +18,20 @@ class PreviewCanvas extends React.Component {
     canvas: null,
   }
 
+  componentDidUpdate() {
+    window.canvas.set({ backgroundImage: fabric.Image.fromURL('bgr.jpg') })
+    fabric.Image.fromURL('bgr.jpg', function(img) {
+       // add background image
+       window.canvas.setBackgroundImage(img, window.canvas.renderAll.bind(window.canvas), {
+          scaleX: 1,
+          scaleY: 1
+       });
+    });
+  }
+
   componentDidMount() {
     window.canvas = new fabric.Canvas(this.c)
-    this.setState({ canvas: window.canvas })
+    this.setState({ canvas: window.canvas })    
   }
 
   render() {

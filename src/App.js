@@ -1,7 +1,7 @@
 import React from 'react'
 // import { isChromium, isOpera, isChrome, isTablet, isMobile } from "react-device-detect";
 import PreviewCanvas from './PreviewCanvas'
-import Image from './Image'
+import Elements from './Elements'
 import { Pane } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
@@ -14,7 +14,7 @@ class App extends React.Component {
     this.state = {
       data: null,
       error: null,
-      progress: 100
+      progress: 33
     }
   }
 
@@ -70,7 +70,12 @@ class App extends React.Component {
       <Pane clearfix>
         <div className="canvasContainer">
           <PreviewCanvas progress={progress}>
-            <Image url="output.png" scale={1} top={480} progress={progress} />
+            <Elements
+              waveform="output.png"
+              waveformTop={480}
+              progress={progress}
+              text="Lost Method - Psylophony"
+            />
           </PreviewCanvas>
         </div>
         <Pane
