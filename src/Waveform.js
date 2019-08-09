@@ -4,7 +4,7 @@ import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
 import domtoimage from 'dom-to-image'
 import Editor from './Editor/'
-import { Pane, Heading, FilePicker, Button, toaster, Spinner, Icon } from 'evergreen-ui'
+import { Pane, Heading, FilePicker, Button, toaster, Icon, Spinner } from 'evergreen-ui'
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import './waveform.css'
@@ -22,6 +22,7 @@ class Waveform extends React.Component {
       downloadLink: null,
       duration: null,
       error: null,
+      analysing: false,
       playing: false,
       preparing: false,
       showOverlay: false,
@@ -31,8 +32,6 @@ class Waveform extends React.Component {
       coverImage: null,
       tags: {},
       uploadedAudioFilename: null,
-      uploadProgress: null,
-      uploadTotal: null,
       working: false,
       waveStyle: {
         width: 1280,
@@ -78,11 +77,11 @@ class Waveform extends React.Component {
           ...this.state.waveStyle
         }) : this.wavesurfer
         this.wavesurfer.on('loading', () => {
-          // this.setState({ analysing: true })
+          this.setState({ analysing: true })
         })
         this.wavesurfer.on('ready', () => {
           this.setState({
-            // analysing: false,
+            analysing: false,
             duration: this.wavesurfer.getDuration(),
             currentFrame: 0,
           })
@@ -161,6 +160,8 @@ class Waveform extends React.Component {
   }
 
   async exportFrames() {
+    const shutterSpeed = this.state.showCover ? 300 : 200 // if background image used, interval timer is longer
+    this.wavesurfer.stop()
     this.setState({
       working: true,
       showEditor: false,
@@ -172,13 +173,13 @@ class Waveform extends React.Component {
       if (this.frame <= (this.state.duration * FPS)) {
         const nextFrame = 1/(this.state.duration * FPS) * this.frame
         this.seekTo(nextFrame, () => {
-          domtoimage.toPng(document.querySelector(".waveformContainer"), {
+          domtoimage.toJpeg(document.querySelector(".waveformContainer"), {
             quality: 0.8,
             width: 1280,
             height: 720
           })
             .then(async (dataUrl) => {
-              const filename = timestamp + '-frame' + (1000 + this.frame) + '.png'
+              const filename = timestamp + '-frame' + (1000 + this.frame) + '.jpg'
               var blob = this.dataURLtoFile(dataUrl, filename)            
               var formData = new FormData();
               formData.append('file', blob, filename);
@@ -195,7 +196,7 @@ class Waveform extends React.Component {
         // Merge exported images into video
         this.mergeFrames(timestamp)
       }  
-    }, 200)
+    }, shutterSpeed)
   }
 
   seekTo(duration, callback) {
@@ -211,14 +212,6 @@ class Waveform extends React.Component {
     toaster.success('Almost done!', {
       description: 'Adding finishing touch...'
     })
-    // const timestamp = Date.now()
-    // this.exportedImages.forEach(async (image, index) => {
-      // const filename = timestamp + '-frame' + (1000 + index) + '.png'
-      // var blob = this.dataURLtoFile(image, filename)            
-      // var formData = new FormData();
-      // formData.append('file', blob, filename);
-      // await axios.post(APIURL + "uploadFrames", formData)
-    // })
     await axios({
       url: APIURL + "mergeFrames",
       method: 'post',
@@ -255,7 +248,7 @@ class Waveform extends React.Component {
     var a = document.createElement('a');
     a.href = APIURL + 'download/' + res.data.filename
     a.download = `${title}.mp4`
-    // a.click();
+    a.click();
     this.setState({
       preparing: false,
       downloadLink: APIURL + 'download/' + res.data.filename
@@ -269,11 +262,11 @@ class Waveform extends React.Component {
   }
 
   getButtonText() {
-    const { working, preparing, uploadTotal, uploadProgress } = this.state
+    const { working, preparing } = this.state
     if (working) {
       return 'Rendering...'
     } else if (preparing) {
-      return `Compressing...` // ${Math.floor((100/uploadTotal) * uploadProgress - 1)}%
+      return `Compressing...`
     }
     else {
       return 'Now Make it!'
@@ -313,6 +306,7 @@ class Waveform extends React.Component {
       duration,
       coverImage,
       error,
+      analysing,
       playing,
       preparing,
       showOverlay,
@@ -326,8 +320,9 @@ class Waveform extends React.Component {
     const length = (duration / 60).toFixed(1)
     const { album, artist, title } = this.state.tags
     const { textColor, backgroundSize, backgroundPosition } = this.state.theme
+    const shutterSpeed = showCover ? 300 : 200 // if background image used, interval timer is longer
     const progress = Math.floor((100/Math.floor(duration * FPS)) * currentFrame)
-    const secondsLeft = Math.floor((duration*FPS/5) - (currentFrame/5))
+    const secondsLeft = Math.floor((duration*FPS/(1000/shutterSpeed)) - (currentFrame/5))
     const formatMinutes = Math.floor(secondsLeft / 60)
     const formatSeconds = secondsLeft - (Math.floor(secondsLeft / 60)) * 60
     const timeLeft = `${formatMinutes < 10 ? '0' + formatMinutes : formatMinutes}:${formatSeconds < 10 ? '0' + formatSeconds : formatSeconds}`
@@ -444,6 +439,10 @@ class Waveform extends React.Component {
                 { title && <h1>"{title}"</h1> }
                 <p>{ album && album }</p>
               </div>
+              { analysing && <div className="overlaySpinner">
+                <Spinner size={64} />
+                <Heading size={800}>&nbsp;Analysing waveform</Heading>
+              </div> }
               <div className='waveform'>
                 <div className='wave'></div>
               </div> 
