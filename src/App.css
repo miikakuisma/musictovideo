@@ -1,1 +1,8 @@
-
+.canvasContainer {
+	width: 1920px;
+  height: 1080px;
+  margin: auto;
+  background: #111;
+	transform: scale(0.5);
+  transform-origin: 0 0;
+}
