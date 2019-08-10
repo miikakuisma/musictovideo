@@ -3,6 +3,10 @@ import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
 import domtoimage from 'dom-to-image'
+
+import PreviewCanvas from './PreviewCanvas'
+import Elements from './Elements'
+
 import Editor from './Editor/'
 import { Pane, Heading, FilePicker, Button, toaster, Icon, Spinner } from 'evergreen-ui'
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
@@ -23,6 +27,7 @@ class Waveform extends React.Component {
       duration: null,
       error: null,
       analysing: false,
+      waveformImage: null,
       playing: false,
       preparing: false,
       showOverlay: false,
@@ -70,7 +75,7 @@ class Waveform extends React.Component {
       })
       const _this = this
       this.setState({ showHelp: false })
-      // Initialize wave surfer
+      // // Initialize wave surfer
       setTimeout(() => {
         this.wavesurfer = !this.wavesurfer ? WaveSurfer.create({
           container: document.querySelector('.waveform'),
@@ -103,10 +108,15 @@ class Waveform extends React.Component {
       axios.post(APIURL + "uploadMusic", data)
       .then(res => {
         if (res.statusText === 'OK') {
+          _this.setState({
+            uploadedAudioFilename: res.data.filename,
+            waveformImage: APIURL + "getWaveform/" + res.data.waveform
+          })
+          this.readTags(acceptedFiles[0])
+          console.log(res, this.state.waveformImage)
           toaster.success('Your file has been uploaded.', {
             description: 'We will attach it into the video'
           })
-          _this.setState({ uploadedAudioFilename: res.data.filename })
         } else {
           _this.setState({ error: 'Something went wrong..' })
         }
@@ -299,11 +309,32 @@ class Waveform extends React.Component {
     window.location.reload()
   }
 
+  export() {
+    this.setState({ progress: 0 })
+    window.requestAnimationFrame(this.exportFrame.bind(this));
+  }
+
+  exportFrame() {
+    const { progress } = this.state
+    const frame = window.canvas.toDataURL({
+      format: 'jpeg',
+      quality: 0.8
+    })
+    // upload frames..
+    this.setState({ progress: progress + 1 })
+    if (progress < 100) {
+      window.requestAnimationFrame(this.exportFrame.bind(this))
+    } else {
+      console.log('DONE')
+    }
+  }
+
   render() {
     const {
       downloadLink,
       currentFrame,
       duration,
+      waveformImage,
       coverImage,
       error,
       analysing,
@@ -399,60 +430,37 @@ class Waveform extends React.Component {
 
         { !showHelp && <Pane
           elevation={2}
+          width={1020}
+          height={620}
           display="flex"
           padding={30}
+          marginBottom={30}
           justifyContent="left"
           alignItems="left"
           flexDirection="column"
-          marginBottom={30}
           style={{
             boxShadow: working && 'none'
           }}
         >
           <Heading size={500} >Preview</Heading>
-          <div
-            className='waveformContainer'
-            style={{
-              width: `1280px`,
-              height: `720px`,
-              zoom: working ? '1' : '0.5',
-              background: showHelp ? '#333' : `linear-gradient(to bottom, ${theme.colorTop} 0%,${theme.colorBottom} 100%)`
-            }}
-          >
-            <Pane>
-              { showCover && <div className="cover" style={{
-                backgroundImage: `url(${coverImage})`,
-                backgroundSize: backgroundSize,
-                backgroundPosition: backgroundPosition
-              }}>
-                <input
-                  type="file"
-                  style={{
-                    opacity: coverImage ? '0' : '1'
-                  }}
-                  onChange={this.handleDropCover.bind(this)}
-                />
-              </div> }
-              { showOverlay && <div className="overlay"></div> }
-              <div className="info" style={{ color: textColor }}>           
-                { artist && <h2>{artist}</h2> }
-                { title && <h1>"{title}"</h1> }
-                <p>{ album && album }</p>
-              </div>
-              { analysing && <div className="overlaySpinner">
-                <Spinner size={64} />
-                <Heading size={800}>&nbsp;Analysing waveform</Heading>
-              </div> }
-              <div className='waveform'>
-                <div className='wave'></div>
-              </div> 
-            </Pane>
+          <div className="canvasContainer">
+            <PreviewCanvas width={1920} height={1080} progress={progress}>
+              <Elements
+                waveform={waveformImage}
+                waveformTop={480}
+                progress={progress}
+                text={`${artist} - ${title}`}
+              />
+            </PreviewCanvas>
           </div>
+
+          <div className="waveform"></div>
 
           { length > 1 && !error && <Pane
             display="flex"
             alignItems="center"
             justifyContent="space-between"
+            className="buttonContainer"
           >
             <Pane width="50%">
               <Button

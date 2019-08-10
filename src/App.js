@@ -1,7 +1,5 @@
 import React from 'react'
 // import { isChromium, isOpera, isChrome, isTablet, isMobile } from "react-device-detect";
-import PreviewCanvas from './PreviewCanvas'
-import Elements from './Elements'
 import { Pane } from 'evergreen-ui'
 import Waveform from './Waveform'
 import './App.css'
@@ -14,7 +12,6 @@ class App extends React.Component {
     this.state = {
       data: null,
       error: null,
-      progress: 33
     }
   }
 
@@ -42,42 +39,11 @@ class App extends React.Component {
     this.setState({ selectedFormat: parseInt(event.target.value) })
   }
 
-  export() {
-    this.setState({ progress: 0 })
-    window.requestAnimationFrame(this.exportFrame.bind(this));
-  }
-
-  exportFrame() {
-    const { progress } = this.state
-    const frame = window.canvas.toDataURL({
-      format: 'jpeg',
-      quality: 0.8
-    })
-    // upload frames..
-    this.setState({ progress: progress + 1 })
-    if (progress < 100) {
-      window.requestAnimationFrame(this.exportFrame.bind(this))
-    } else {
-      console.log('DONE')
-    }
-  }
-
   render() {
-    const { error, progress } = this.state
-    console.log(progress)
+    const { error } = this.state
     // Otherwise start the app
     return (
       <Pane clearfix>
-        <div className="canvasContainer">
-          <PreviewCanvas progress={progress}>
-            <Elements
-              waveform="output.png"
-              waveformTop={480}
-              progress={progress}
-              text="Lost Method - Psylophony"
-            />
-          </PreviewCanvas>
-        </div>
         <Pane
           elevation={1}
           width={window.innerWidth}
@@ -88,7 +54,6 @@ class App extends React.Component {
           flexDirection="column"
           backgroundColor="white"
         >
-          <button onClick={this.export.bind(this)}>Export</button>
           {!error ? <Waveform /> : <h1 style={{ color: 'white' }}>{error}</h1> }
         </Pane>
       </Pane>

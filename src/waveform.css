@@ -2,6 +2,22 @@
 	outline: none;
 }
 
+.canvasContainer {
+  width: 1920px;
+  height: 1080px;
+  margin: auto;
+  background: #111;
+  transform: scale(0.5);
+  transform-origin: 0 0;
+}
+
+.buttonContainer {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  width: 100%;
+}
+
 .curtain {
   position: absolute;
   top: 0;
@@ -15,20 +31,8 @@
   justify-content: center;
 }
 
-.waveformContainer {
-	position: relative;
-	margin: 10px auto;
-}
-
 .waveform {
-	position: absolute;
-  top: 320px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 360px;
-  overflow: hidden;
-  pointer-events: none;
+	display: none;
 }
 
 .overlaySpinner {

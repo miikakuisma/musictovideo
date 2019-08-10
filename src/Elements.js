@@ -6,7 +6,7 @@ const fabric = window.fabric
 class Elements extends React.Component {
   static propTypes = {
     canvas: PropTypes.object,
-    waveform: PropTypes.string.isRequired,
+    waveform: PropTypes.string,
     waveformTop: PropTypes.number.isRequired,
     text: PropTypes.string.isRequired,
     progress: PropTypes.number.isRequired,
@@ -41,17 +41,20 @@ class Elements extends React.Component {
       height: 1080,
     }))
 
+    console.log(this.props.waveform)
+
     fabric.Image.fromURL(this.props.waveform, img => {
       img.set({ top: this.props.waveformTop })
       img.lockMovementX = true
       img.hasControls = false
+      img.opacity = 0.5
       img.filters.push(new fabric.Image.filters.Brightness({
         brightness: -1
       }));
       img.applyFilters()
       this.props.canvas.add(img)
       img.sendToBack()
-    })
+    }, { crossOrigin: 'anonymous' })
 
     fabric.Image.fromURL(this.props.waveform, img => {
       img.set({ top: this.props.waveformTop })
@@ -64,7 +67,7 @@ class Elements extends React.Component {
       img.applyFilters()
       this.props.canvas.add(img)
       img.bringToFront()
-    })
+    }, { crossOrigin: 'anonymous' })
   }
 
   render() {
