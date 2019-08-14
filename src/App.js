@@ -56,6 +56,12 @@ class App extends React.Component {
         >
           {!error ? <Waveform /> : <h1 style={{ color: 'white' }}>{error}</h1> }
         </Pane>
+        <video
+          id="scope-video"
+          type="video/mp4"
+          style={{ display: 'none' }}
+          src="http://localhost:5000/getWaveform/Lifeline.mp4"
+        ></video>
       </Pane>
     )
   }

@@ -8,7 +8,7 @@ import PreviewCanvas from './PreviewCanvas'
 import Elements from './Elements'
 
 import Editor from './Editor/'
-import { Pane, Heading, FilePicker, Button, toaster, Icon, Spinner } from 'evergreen-ui'
+import { Pane, Heading, FilePicker, Button, toaster, Icon, Spinner, Switch } from 'evergreen-ui'
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import './waveform.css'
@@ -28,6 +28,7 @@ class Waveform extends React.Component {
       error: null,
       analysing: false,
       waveformImage: null,
+      scopeVideo: 'Lifeline.mp4',
       playing: false,
       preparing: false,
       showOverlay: false,
@@ -35,6 +36,7 @@ class Waveform extends React.Component {
       showEditor: false,
       showHelp: true,
       coverImage: null,
+      scopeRendered: false,
       tags: {},
       uploadedAudioFilename: null,
       working: false,
@@ -103,7 +105,7 @@ class Waveform extends React.Component {
         this.loadSound(acceptedFiles[0])
       }, 1000)
       // Upload the file for later processing
-      const data = new FormData() 
+      const data = new FormData()
       data.append('file', acceptedFiles[0])
       axios.post(APIURL + "uploadMusic", data)
       .then(res => {
@@ -279,7 +281,7 @@ class Waveform extends React.Component {
       return `Compressing...`
     }
     else {
-      return 'Now Make it!'
+      return 'Save as Video'
     }
   }
 
@@ -307,6 +309,28 @@ class Waveform extends React.Component {
 
   startOver() {
     window.location.reload()
+  }
+
+  async createScope() {
+    const _this = this
+    toaster.success('Scope rendering started', {
+      description: 'a moment please...'
+    })
+    console.log(this.state.uploadedAudioFilename)
+    axios.get(APIURL + "renderScope/" + this.state.uploadedAudioFilename)
+    .then(res => {
+      if (res.statusText === 'OK') {
+        _this.setState({ scopeRendered: true })
+        console.log(res.data.scopeVideo)
+        toaster.success('Scope video ready!', {
+          description: 'You should see it appearing in preview now'
+        })
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      this.setState({ error: 'Could not connect to server..' })
+    });
   }
 
   export() {
@@ -338,6 +362,7 @@ class Waveform extends React.Component {
       coverImage,
       error,
       analysing,
+      uploadedAudioFilename,
       playing,
       preparing,
       showOverlay,
@@ -347,6 +372,7 @@ class Waveform extends React.Component {
       working,
       theme,
       tags,
+      scopeRendered
     } = this.state
     const length = (duration / 60).toFixed(1)
     const { album, artist, title } = this.state.tags
@@ -447,13 +473,17 @@ class Waveform extends React.Component {
             <PreviewCanvas width={1920} height={1080} progress={progress}>
               <Elements
                 waveform={waveformImage}
+                theme='light'
                 waveformTop={480}
-                progress={progress}
+                progress={30}
                 text={`${artist} - ${title}`}
+                showScope={true}
+                // showScope={scopeRendered}
+                // scopeVideo={uploadedAudioFilename && uploadedAudioFilename.replace('.mp3', '_scope.mp4')}
               />
             </PreviewCanvas>
           </div>
-
+          
           <div className="waveform"></div>
 
           { length > 1 && !error && <Pane
@@ -484,6 +514,11 @@ class Waveform extends React.Component {
                   this.wavesurfer.seekTo(!showEditor ? 0.3 : 0)
                 }}
               >Options</Button>
+              <Switch
+                height={24}
+                checked={scopeRendered}
+                onChange={this.createScope.bind(this)}
+              />
             </Pane>
             <Pane
               width="auto"

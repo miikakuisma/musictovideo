@@ -77,8 +77,28 @@ app.post('/uploadMusic',function(req, res) {
     const uploadedFilename = (req.file && req.file.filename)
     exec('ffmpeg -i uploads/' + uploadedFilename + ' -filter_complex "showwavespic=colors=#00ff00|#ff00ff:size=1920x480" -frames:v 1 -y uploads/' + uploadedFilename.replace('.mp3','') + '.png', (err, stdout, stderr) => {
       return res.status(200).json({
-        filename: req.file && req.file.filename,
+        filename: uploadedFilename,
         waveform: uploadedFilename.replace('.mp3', '.png')
+      })
+    })
+  })
+});
+
+app.get('/renderScope/:file(*)',function(req, res) {
+  // var file = req.params.file;
+  // res.sendFile(__dirname + '/uploads/' + file); 
+  const uploadedFilename = req.params.file
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json(err)
+    } else if (err) {
+      return res.status(500).json(err)
+    }
+    console.log(uploadedFilename)
+    exec('ffmpeg -i uploads/' + uploadedFilename + ' -filter_complex "showwaves=mode=cline:colors=#00ff00|ff00ff:size=1920x480" -map 0:a -pix_fmt yuv420p -y uploads/' + uploadedFilename.replace('.mp3','') + '.mp4', (err, stdout, stderr) => {
+      console.log(res.status)
+      return res.status(200).json({
+        scopeVideo: uploadedFilename.replace('.mp3', '.mp4')
       })
     })
   })
