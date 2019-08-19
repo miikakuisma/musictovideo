@@ -41,10 +41,12 @@ class Elements extends React.Component {
       height: 1080,
     }))
 
-    console.log(this.props.waveform)
-
     fabric.Image.fromURL(this.props.waveform, img => {
-      img.set({ top: this.props.waveformTop })
+      img.set({
+        top: this.props.waveformTop,
+        width: 1920,
+        height: 480
+      })
       img.lockMovementX = true
       img.hasControls = false
       img.opacity = 0.5
@@ -57,7 +59,11 @@ class Elements extends React.Component {
     }, { crossOrigin: 'anonymous' })
 
     fabric.Image.fromURL(this.props.waveform, img => {
-      img.set({ top: this.props.waveformTop })
+      img.set({
+        top: this.props.waveformTop,
+        width: 1920,
+        height: 480
+      })
       img.lockMovementX = true
       img.hasControls = false
       img.clipPath = clipPath

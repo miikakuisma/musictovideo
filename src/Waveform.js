@@ -38,6 +38,7 @@ class Waveform extends React.Component {
       tags: {},
       uploadedAudioFilename: null,
       working: false,
+      progress: 0,
       waveStyle: {
         width: 1280,
         height: 360,
@@ -89,13 +90,18 @@ class Waveform extends React.Component {
             analysing: false,
             duration: this.wavesurfer.getDuration(),
             currentFrame: 0,
+            progress: 0,
           })
         })
         this.wavesurfer.on('play', () => {
           // console.log('playback started')
         })
+        this.wavesurfer.on('seek', (e) => {
+          // console.log('seek', e)
+        })
         this.wavesurfer.on('audioprocess', (e) => {
-          // console.log('on audioprocess', e)
+          // this.setState({ progress: (100 / this.state.duration) * e })
+          // console.log(this.state.progress)
         })
         this.wavesurfer.on('finish', () => {
           // console.log('playback finished')
@@ -211,7 +217,10 @@ class Waveform extends React.Component {
 
   seekTo(duration, callback) {
     this.wavesurfer.seekTo(duration)
-    callback()
+    const currentTime = this.wavesurfer.getCurrentTime() // seconds
+    this.setState({ progress: (100 / this.state.duration * FPS) * (duration * 100) })
+    console.log(this.state.progress)
+    if (callback) { callback() }
   }
 
   async mergeFrames(timestamp) {
@@ -311,21 +320,34 @@ class Waveform extends React.Component {
 
   export() {
     this.setState({ progress: 0 })
+    this.frame = 1
     window.requestAnimationFrame(this.exportFrame.bind(this));
   }
 
   exportFrame() {
-    const { progress } = this.state
+    const { progress, currentFrame, duration } = this.state
     const frame = window.canvas.toDataURL({
       format: 'jpeg',
       quality: 0.8
     })
     // upload frames..
-    this.setState({ progress: progress + 1 })
-    if (progress < 100) {
+    const timestamp = '000'
+    const nextFrame = 1/(duration * FPS) * this.frame
+    this.seekTo(nextFrame)
+    const filename = timestamp + '-frame' + (1000 + this.frame) + '.jpg'
+    var blob = this.dataURLtoFile(frame, filename)            
+    var formData = new FormData();
+    formData.append('file', blob, filename);
+    this.setState({
+      currentFrame: this.frame + 1,
+    })
+    this.frame++
+    axios.post(APIURL + "uploadFrames", formData)
+    if (currentFrame < duration) {
       window.requestAnimationFrame(this.exportFrame.bind(this))
     } else {
       console.log('DONE')
+      this.mergeFrames(timestamp)
     }
   }
 
@@ -448,7 +470,7 @@ class Waveform extends React.Component {
               <Elements
                 waveform={waveformImage}
                 waveformTop={480}
-                progress={progress}
+                progress={this.state.progress}
                 text={`${artist} - ${title}`}
               />
             </PreviewCanvas>
@@ -481,7 +503,7 @@ class Waveform extends React.Component {
                 disabled={working || preparing}
                 onClick={() => {
                   this.setState({ showEditor: !showEditor })
-                  this.wavesurfer.seekTo(!showEditor ? 0.3 : 0)
+                  this.seekTo(!showEditor ? 0.3 : 0)
                 }}
               >Options</Button>
             </Pane>
@@ -520,7 +542,7 @@ class Waveform extends React.Component {
                 intent="success"
                 iconBefore={ working || preparing ? null : "endorsed" }
                 onClick={() => {
-                  this.exportFrames()
+                  this.export()
                 }}
               >{this.getButtonText()}</Button> }
               { downloadLink && <Button

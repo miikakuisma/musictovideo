@@ -74,8 +74,8 @@ app.post('/uploadMusic',function(req, res) {
     } else if (err) {
       return res.status(500).json(err)
     }
-    const uploadedFilename = (req.file && req.file.filename)
-    exec('ffmpeg -i uploads/' + uploadedFilename + ' -filter_complex "showwavespic=colors=#00ff00|#ff00ff:size=1920x480" -frames:v 1 -y uploads/' + uploadedFilename.replace('.mp3','') + '.png', (err, stdout, stderr) => {
+    const uploadedFilename = (req.file && req.file.filename) // compand,
+    exec('ffmpeg -i uploads/' + uploadedFilename + ' -filter_complex "aformat=channel_layouts=mono,showwavespic=colors=#ffffff:size=1920x480" -frames:v 1 -y uploads/' + uploadedFilename.replace('.mp3','') + '.png', (err, stdout, stderr) => {
       return res.status(200).json({
         filename: req.file && req.file.filename,
         waveform: uploadedFilename.replace('.mp3', '.png')
