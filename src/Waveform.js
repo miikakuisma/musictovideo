@@ -217,9 +217,7 @@ class Waveform extends React.Component {
 
   seekTo(duration, callback) {
     this.wavesurfer.seekTo(duration)
-    const currentTime = this.wavesurfer.getCurrentTime() // seconds
-    this.setState({ progress: (100 / this.state.duration * FPS) * (duration * 100) })
-    console.log(this.state.progress)
+    this.setState({ progress: duration * 100 })
     if (callback) { callback() }
   }
 
@@ -319,13 +317,18 @@ class Waveform extends React.Component {
   }
 
   export() {
-    this.setState({ progress: 0 })
+    this.wavesurfer.stop()
+    this.setState({
+      progress: 0,
+      working: true,
+      showEditor: false,
+    })
     this.frame = 1
     window.requestAnimationFrame(this.exportFrame.bind(this));
   }
 
   exportFrame() {
-    const { progress, currentFrame, duration } = this.state
+    const { duration } = this.state
     const frame = window.canvas.toDataURL({
       format: 'jpeg',
       quality: 0.8
@@ -343,10 +346,11 @@ class Waveform extends React.Component {
     })
     this.frame++
     axios.post(APIURL + "uploadFrames", formData)
-    if (currentFrame < duration) {
+    if (this.frame <= (duration * FPS)) {
       window.requestAnimationFrame(this.exportFrame.bind(this))
     } else {
       console.log('DONE')
+      this.setState({ working: false })
       this.mergeFrames(timestamp)
     }
   }
@@ -378,7 +382,6 @@ class Waveform extends React.Component {
     const secondsLeft = Math.floor((duration*FPS/(1000/shutterSpeed)) - (currentFrame/5))
     const formatMinutes = Math.floor(secondsLeft / 60)
     const formatSeconds = secondsLeft - (Math.floor(secondsLeft / 60)) * 60
-    const timeLeft = `${formatMinutes < 10 ? '0' + formatMinutes : formatMinutes}:${formatSeconds < 10 ? '0' + formatSeconds : formatSeconds}`
 
     return (
       <Pane clearfix style={{ position: 'relative' }}>
@@ -438,7 +441,7 @@ class Waveform extends React.Component {
           >
             <CircularProgressbar
               value={progress}
-              text={`${timeLeft}`}
+              text={`${progress}%`}
               circleRatio={0.75}
               styles={buildStyles({
                 rotation: 1 / 2 + 1 / 8,
@@ -446,7 +449,7 @@ class Waveform extends React.Component {
                 trailColor: "#eee"
               })}
             />
-            <span style={{ marginTop: '-40px' }}>time remaining</span>
+            <span style={{ marginTop: '-40px' }}>Rendering</span>
           </Pane>
         </div> }
 
