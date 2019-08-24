@@ -8,7 +8,7 @@ import PreviewCanvas from './PreviewCanvas'
 import Elements from './Elements'
 
 import Editor from './Editor/'
-import { Pane, Heading, FilePicker, Button, toaster, Icon, Spinner } from 'evergreen-ui'
+import { Pane, Heading, FilePicker, Button, toaster, Icon } from 'evergreen-ui'
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import './waveform.css'
@@ -76,49 +76,49 @@ class Waveform extends React.Component {
       })
       const _this = this
       this.setState({ showHelp: false })
-      // // Initialize wave surfer
-      setTimeout(() => {
-        this.wavesurfer = !this.wavesurfer ? WaveSurfer.create({
-          container: document.querySelector('.waveform'),
-          ...this.state.waveStyle
-        }) : this.wavesurfer
-        this.wavesurfer.on('loading', () => {
-          this.setState({ analysing: true })
-        })
-        this.wavesurfer.on('ready', () => {
-          this.setState({
-            analysing: false,
-            duration: this.wavesurfer.getDuration(),
-            currentFrame: 0,
-            progress: 0,
-          })
-        })
-        this.wavesurfer.on('play', () => {
-          // console.log('playback started')
-        })
-        this.wavesurfer.on('seek', (e) => {
-          // console.log('seek', e)
-        })
-        this.wavesurfer.on('audioprocess', (e) => {
-          // this.setState({ progress: (100 / this.state.duration) * e })
-          // console.log(this.state.progress)
-        })
-        this.wavesurfer.on('finish', () => {
-          // console.log('playback finished')
-        })
-        this.loadSound(acceptedFiles[0])
-      }, 1000)
       // Upload the file for later processing
       const data = new FormData() 
       data.append('file', acceptedFiles[0])
       axios.post(APIURL + "uploadMusic", data)
       .then(res => {
         if (res.statusText === 'OK') {
+          // Initialize wave surfer
+          this.wavesurfer = !this.wavesurfer ? WaveSurfer.create({
+            container: document.querySelector('.waveform'),
+            ...this.state.waveStyle
+          }) : this.wavesurfer
+          this.wavesurfer.on('loading', () => {
+            this.setState({ analysing: true })
+          })
+          this.wavesurfer.on('ready', () => {
+            this.setState({
+              analysing: false,
+              duration: this.wavesurfer.getDuration(),
+              currentFrame: 0,
+              progress: 0,
+            })
+          })
+          this.wavesurfer.on('play', () => {
+            // console.log('playback started')
+          })
+          this.wavesurfer.on('seek', (e) => {
+            // console.log('seek', e)
+          })
+          this.wavesurfer.on('audioprocess', (e) => {
+            // this.setState({ progress: (100 / this.state.duration * FPS) * e })
+            // console.log(this.state.progress)
+          })
+          this.wavesurfer.on('finish', () => {
+            // console.log('playback finished')
+          })
+          this.loadSound(acceptedFiles[0])
+
+
           _this.setState({
             uploadedAudioFilename: res.data.filename,
             waveformImage: APIURL + "getWaveform/" + res.data.waveform
           })
-          this.readTags(acceptedFiles[0])
+          _this.readTags(acceptedFiles[0])
           console.log(res, this.state.waveformImage)
           toaster.success('Your file has been uploaded.', {
             description: 'We will attach it into the video'
@@ -173,46 +173,6 @@ class Waveform extends React.Component {
       u8arr[n] = bstr.charCodeAt(n);
     }
     return new File([u8arr], filename, {type:mime});
-  }
-
-  async exportFrames() {
-    const shutterSpeed = this.state.showCover ? 300 : 200 // if background image used, interval timer is longer
-    this.wavesurfer.stop()
-    this.setState({
-      working: true,
-      showEditor: false,
-    })
-    this.frame = 1
-    this.exportedImages = []
-    const timestamp = Date.now()
-    this.exportTimer = setInterval(() => {
-      if (this.frame <= (this.state.duration * FPS)) {
-        const nextFrame = 1/(this.state.duration * FPS) * this.frame
-        this.seekTo(nextFrame, () => {
-          domtoimage.toJpeg(document.querySelector(".waveformContainer"), {
-            quality: 0.8,
-            width: 1280,
-            height: 720
-          })
-            .then(async (dataUrl) => {
-              const filename = timestamp + '-frame' + (1000 + this.frame) + '.jpg'
-              var blob = this.dataURLtoFile(dataUrl, filename)            
-              var formData = new FormData();
-              formData.append('file', blob, filename);
-              this.setState({
-                currentFrame: this.frame + 1,
-              })
-              this.frame++
-              axios.post(APIURL + "uploadFrames", formData)
-            })
-        })
-      } else {
-        clearInterval(this.exportTimer)
-        this.setState({ working: false })
-        // Merge exported images into video
-        this.mergeFrames(timestamp)
-      }  
-    }, shutterSpeed)
   }
 
   seekTo(duration, callback) {
@@ -361,9 +321,7 @@ class Waveform extends React.Component {
       currentFrame,
       duration,
       waveformImage,
-      coverImage,
       error,
-      analysing,
       playing,
       preparing,
       showOverlay,
@@ -375,13 +333,8 @@ class Waveform extends React.Component {
       tags,
     } = this.state
     const length = (duration / 60).toFixed(1)
-    const { album, artist, title } = this.state.tags
-    const { textColor, backgroundSize, backgroundPosition } = this.state.theme
-    const shutterSpeed = showCover ? 300 : 200 // if background image used, interval timer is longer
+    const { artist, title } = this.state.tags
     const progress = Math.floor((100/Math.floor(duration * FPS)) * currentFrame)
-    const secondsLeft = Math.floor((duration*FPS/(1000/shutterSpeed)) - (currentFrame/5))
-    const formatMinutes = Math.floor(secondsLeft / 60)
-    const formatSeconds = secondsLeft - (Math.floor(secondsLeft / 60)) * 60
 
     return (
       <Pane clearfix style={{ position: 'relative' }}>

@@ -34,10 +34,17 @@ class Elements extends React.Component {
       shadow: 'rgba(0,0,0,0.3) 5px 5px 5px',
     }))
 
-    const clipPath = new window.fabric.Rect(({
+    const clipPathBright = new window.fabric.Rect(({
       left: -960,
       top: -540,
       width: 1920/100 * progress,
+      height: 1080,
+    }))
+
+    const clipPathDim = new window.fabric.Rect(({
+      left: 1920/100 * progress - 960,
+      top: -540,
+      width: 1920,
       height: 1080,
     }))
 
@@ -50,6 +57,7 @@ class Elements extends React.Component {
       img.lockMovementX = true
       img.hasControls = false
       img.opacity = 0.5
+      img.clipPath = clipPathDim
       img.filters.push(new fabric.Image.filters.Brightness({
         brightness: -1
       }));
@@ -66,7 +74,8 @@ class Elements extends React.Component {
       })
       img.lockMovementX = true
       img.hasControls = false
-      img.clipPath = clipPath
+      img.opacity = 0.95
+      img.clipPath = clipPathBright
       img.filters.push(new fabric.Image.filters.Brightness({
         brightness: 2
       }));
