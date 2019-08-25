@@ -2,7 +2,7 @@ import React from 'react'
 import axios from 'axios'
 import WaveSurfer from 'wavesurfer.js'
 import Dropzone from 'react-dropzone'
-import domtoimage from 'dom-to-image'
+// import domtoimage from 'dom-to-image'
 
 import PreviewCanvas from './PreviewCanvas'
 import Elements from './Elements'
@@ -79,6 +79,7 @@ class Waveform extends React.Component {
       // Upload the file for later processing
       const data = new FormData() 
       data.append('file', acceptedFiles[0])
+      toaster.notify('Your file is being uploaded.')
       axios.post(APIURL + "uploadMusic", data)
       .then(res => {
         if (res.statusText === 'OK') {
@@ -113,13 +114,12 @@ class Waveform extends React.Component {
           })
           this.loadSound(acceptedFiles[0])
 
-
+          // Prepare the rest
           _this.setState({
             uploadedAudioFilename: res.data.filename,
             waveformImage: APIURL + "getWaveform/" + res.data.waveform
           })
           _this.readTags(acceptedFiles[0])
-          console.log(res, this.state.waveformImage)
           toaster.success('Your file has been uploaded.', {
             description: 'We will attach it into the video'
           })

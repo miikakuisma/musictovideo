@@ -63,7 +63,7 @@ class Elements extends React.Component {
       }));
       img.applyFilters()
       this.props.canvas.add(img)
-      img.sendToBack()
+      // img.sendToBack()
     }, { crossOrigin: 'anonymous' })
 
     fabric.Image.fromURL(this.props.waveform, img => {
@@ -81,7 +81,7 @@ class Elements extends React.Component {
       }));
       img.applyFilters()
       this.props.canvas.add(img)
-      img.bringToFront()
+      // img.bringToFront()
     }, { crossOrigin: 'anonymous' })
   }
 
