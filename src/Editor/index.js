@@ -16,6 +16,30 @@ class Editor extends React.Component {
     }
   }
 
+  switchToPicker(activate) {
+    const picker = JSON.stringify(activate)
+    if (JSON.stringify(this.state).includes(picker.substring(1, picker.length-1))) {
+      this.setState({
+        ...this.state,
+        showTopColorPicker: false,
+        showTextColorPicker: false,
+        showWaveColorPicker: false,
+        showProgressColorPicker: false,
+        showBottomColorPicker: false,
+      })
+    } else {
+      this.setState({
+        ...this.state,
+        showTopColorPicker: false,
+        showTextColorPicker: false,
+        showWaveColorPicker: false,
+        showProgressColorPicker: false,
+        showBottomColorPicker: false,
+      })
+      this.setState(activate)
+    }    
+  }
+
   handleDropCover(e) {
     var reader = new FileReader()
     const _this = this
@@ -70,7 +94,7 @@ class Editor extends React.Component {
                 backgroundColor: theme.colorTop
               }}
               onClick={() => {
-                this.setState({ showTopColorPicker: !showTopColorPicker })
+                this.switchToPicker({ showTopColorPicker: true })
               }}
             />
             { showTopColorPicker && <SwatchesPicker
@@ -90,7 +114,7 @@ class Editor extends React.Component {
                 backgroundColor: theme.textColor
               }}
               onClick={() => {
-                this.setState({ showTextColorPicker: !showTextColorPicker })
+                this.switchToPicker({ showTextColorPicker: true })
               }}
             />
             { showTextColorPicker && <SwatchesPicker
@@ -110,7 +134,7 @@ class Editor extends React.Component {
                 backgroundColor: theme.waveColor
               }}
               onClick={() => {
-                this.setState({ showWaveColorPicker: !showWaveColorPicker })
+                this.switchToPicker({ showWaveColorPicker: true })
               }}
             />
             { showWaveColorPicker && <SwatchesPicker
@@ -130,7 +154,7 @@ class Editor extends React.Component {
                 backgroundColor: theme.progressColor
               }}
               onClick={() => {
-                this.setState({ showProgressColorPicker: !showProgressColorPicker })
+                this.switchToPicker({ showProgressColorPicker: true })
               }}
             />
             { showProgressColorPicker && <SwatchesPicker
@@ -150,7 +174,7 @@ class Editor extends React.Component {
                 backgroundColor: theme.colorBottom
               }}
               onClick={() => {
-                this.setState({ showBottomColorPicker: !showBottomColorPicker })
+                this.switchToPicker({ showBottomColorPicker: true })
               }}
             />
             { showBottomColorPicker && <SwatchesPicker
