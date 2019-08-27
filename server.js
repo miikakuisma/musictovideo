@@ -103,7 +103,7 @@ app.post('/mergeFrames', function(req, res) {
       return;
     }
     // Then attach the uploaded audio track
-    exec('ffmpeg -i temp/'+req.query.timestamp+'.mp4 -i uploads/' + req.query.audiofile + ' -y downloads/' + req.query.audiofile.replace('.mp3', '.mp4'), (err, stdout, stderr) => {
+    exec('ffmpeg -i temp/'+req.query.timestamp+'.mp4 -i uploads/' + req.query.audiofile + ' -b:a 320k -y downloads/' + req.query.audiofile.replace('.mp3', '.mp4'), (err, stdout, stderr) => {
       if (err) {
         console.error(`exec error: ${err}`);
         return;
