@@ -4,6 +4,11 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 Motivation to build this project was to generate video file from music file. I noticed that services like Facebook don't actually support music.. sure you can post link to SoundCloud etc but you cannot get your music files playing in NewsFeed. However videos are supported so I was thinking, why not create videos that look like music players? So I did this simple web app. The video generated with this app displays waveform data of the audio and then creates video in which that waveform is showing music progressing, very much how standard music player works, but only as a video.
 
+## Screenshot
+
+![alt text](https://github.com/miikakuisma/musictovideo/blob/master/screenshot.png?raw=true "Screenshot")
+
+
 ## Demo
 
 Example: [https://www.facebook.com/miikakuisma/videos/443893596203718/](https://www.facebook.com/miikakuisma/videos/443893596203718/)
