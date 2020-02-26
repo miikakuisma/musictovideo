@@ -1,7 +1,7 @@
 {
   "name": "musictovideo",
   "version": "0.1.0",
-  "homepage": "http://142.93.173.43/",
+  "homepage": "http://dev.moreyes.fi/livepaint/",
   "proxy": "http://localhost:5000/",
   "private": true,
   "dependencies": {
