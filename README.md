@@ -9,7 +9,7 @@ Motivation to build this project was to generate video file from music file. I n
 ![alt text](https://github.com/miikakuisma/musictovideo/blob/master/screenshot.png?raw=true "Screenshot")
 
 
-## Demo
+## Example video
 
 Example: [https://www.facebook.com/miikakuisma/videos/443893596203718/](https://www.facebook.com/miikakuisma/videos/443893596203718/)
 
